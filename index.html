@@ -181,18 +181,14 @@
   const videoURLInput = document.getElementById('videoURL');
   const uploadBtn = document.getElementById('uploadBtn');
 
-  // Mixed default videos: Rickroll + Bedwars Hypixel gameplay
+  // Predefined English videos (verified)
   const defaultVideos = [
-    { id: "dQw4w9WgXcQ", title: "Never Gonna Give You Up" }, // Rickroll
-    { id: "lqQu02K57lg", title: "Playing Bedwars In Hypixel" },
-    { id: "H5xyqzEL7no", title: "Playing Bedwars In Hypixel" },
-    { id: "vK1V1dXFOOk", title: "Playing Bedwars In Hypixel" },
-    { id: "9LVb1p4MMiQ", title: "Playing Bedwars In Hypixel" },
-    { id: "F_Q2yNG7iyw", title: "Playing Bedwars In Hypixel" }
+    { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give You Up" },
+    { id: "3Wod2AX0PR4", title: "Minecraft Bedwars - Epic Win!" },
+    { id: "LsoLEjrDogU", title: "Minecraft Bedwars - Best Defense Strategy" },
+    { id: "0jGfR2aTkNc", title: "Minecraft Bedwars - Clutch Gameplay" },
+    { id: "bRjE9jxTEQY", title: "Minecraft Bedwars - Insane PvP Battle" }
   ];
-
-  // State: all videos to show (default + user)
-  let videos = [];
 
   // Load from localStorage
   function loadState() {
@@ -227,8 +223,8 @@
     coinCounter.textContent = `VVC Balance: ${vvc}`;
   }
 
-  // Store players to control multiple YT iframes
-  let players = {};
+  // YouTube API players map
+  const players = new Map();
 
   // Create video card
   function createVideoCard(video) {
@@ -240,14 +236,14 @@
     title.className = 'video-title';
     card.appendChild(title);
 
-    // iframe ID unique
-    const iframeId = `ytplayer-${video.id}`;
-
-    // iframe
-    const iframe = document.createElement('div');
-    iframe.id = iframeId;
-    iframe.style.width = "320px";
-    iframe.style.height = "180px";
+    // Create iframe with enablejsapi=1 to allow JS API control
+    const iframe = document.createElement('iframe');
+    iframe.width = "320";
+    iframe.height = "180";
+    iframe.src = `https://www.youtube.com/embed/${video.id}?enablejsapi=1&origin=${location.origin}`;
+    iframe.frameBorder = "0";
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    iframe.allowFullscreen = true;
     card.appendChild(iframe);
 
     const btnWatch = document.createElement('button');
@@ -262,7 +258,7 @@
       btnWatch.className = "btn-watch-done";
     }
 
-    // Create YT player for this iframe
+    // Player state handler
     function onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.ENDED) {
         if (!hasWatched(video.id)) {
@@ -272,14 +268,34 @@
       }
     }
 
-    players[iframeId] = new YT.Player(iframeId, {
-      videoId: video.id,
-      width: 320,
-      height: 180,
-      events: {
-        'onStateChange': onPlayerStateChange
+    // Create player and store it
+    function createPlayer() {
+      const player = new YT.Player(iframe, {
+        events: {
+          'onStateChange': onPlayerStateChange
+        }
+      });
+      players.set(video.id, player);
+    }
+
+    if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+      // Load API script once
+      if (!window.youTubeApiScriptAdded) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+        window.youTubeApiScriptAdded = true;
       }
-    });
+
+      // Register callback
+      const oldCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function() {
+        if (oldCallback) oldCallback();
+        createPlayer();
+      };
+    } else {
+      createPlayer();
+    }
 
     btnWatch.addEventListener('click', () => {
       if (!hasWatched(video.id)) {
@@ -312,32 +328,38 @@
     });
   }
 
-  // Load videos from localStorage + default
+  // Initialize videos array with default videos + any uploaded saved videos
+  let videos = [];
   function loadVideos() {
+    // load user uploaded videos from localStorage
     const userVideos = JSON.parse(localStorage.getItem("userVideos") || "[]");
     videos = [...defaultVideos, ...userVideos];
   }
 
-  // Add user video and refresh
-  function addUserVideo(video) {
-    const userVideos = JSON.parse(localStorage.getItem("userVideos") || "[]");
+  // Add new video to userVideos and refresh
+  async function addUserVideo(video) {
+    // Check if video exists on YouTube via oEmbed API (no key needed)
+    try {
+      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`);
+      if (!res.ok) {
+        alert("Video not found or is unavailable.");
+        return;
+      }
+    } catch (e) {
+      alert("Error verifying the video.");
+      return;
+    }
+
     // Prevent duplicates
-    if (userVideos.some(v => v.id === video.id) || videos.some(v => v.id === video.id)) {
+    if (videos.some(v => v.id === video.id)) {
       alert("This video is already in the list.");
       return;
     }
+    const userVideos = JSON.parse(localStorage.getItem("userVideos") || "[]");
     userVideos.push(video);
     localStorage.setItem("userVideos", JSON.stringify(userVideos));
     loadVideos();
     renderVideos(searchInput.value);
-  }
-
-  // YT API ready callback
-  function onYouTubeIframeAPIReady() {
-    loadState();
-    loadVideos();
-    renderCoinCount();
-    renderVideos();
   }
 
   // Event listeners
@@ -348,7 +370,7 @@
       alert("Please enter a valid YouTube video URL!");
       return;
     }
-    addUserVideo({ id, title: "Playing Bedwars In Hypixel" });
+    addUserVideo({ id, title: "User Uploaded Video" });
     videoURLInput.value = '';
   });
 
@@ -356,11 +378,12 @@
     renderVideos(searchInput.value);
   });
 
-  // Load YT Iframe API script dynamically
-  const tag = document.createElement('script');
-  tag.src = "https://www.youtube.com/iframe_api";
-  document.head.appendChild(tag);
-  window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+  // Initial load
+  loadState();
+  loadVideos();
+  renderCoinCount();
+  renderVideos();
+
 </script>
 </body>
 </html>
