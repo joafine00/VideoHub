@@ -1,272 +1,640 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎬 VideoHub - Watch. Earn. Upgrade.</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VideoHub - Your Video Server & Virtual Coin Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-  * {
-    box-sizing: border-box;
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: #4f46e5; /* Indigo-600 */
+    border-radius: 20px;
+    border: 3px solid transparent;
+    background-clip: content-box;
   }
 
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #f0f2f5;
-    color: #222;
+  /* Blur effect for 18+ videos */
+  .blurred-video {
+    filter: blur(15px) brightness(0.7);
+    transition: filter 0.5s ease;
+    pointer-events: none;
+    user-select: none;
   }
-
-  header {
-    background: #ffffff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 25px;
-    border-bottom: 1px solid #ddd;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  header h1 {
-    margin: 0;
-    font-size: 1.4rem;
-    color: #000;
-  }
-
-  header nav a {
-    margin: 0 12px;
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-  }
-
-  header nav a:hover {
-    color: #3897f0;
-  }
-
-  #content {
-    padding: 20px;
-  }
-
-  .hidden { display: none; }
-
-  .section {
-    display: none;
-  }
-
-  .active {
-    display: block;
-  }
-
-  .video-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-
-  iframe {
-    width: 100%;
-    height: 400px;
-    border: none;
-  }
-
-  .video-info {
-    padding: 10px;
-  }
-
-  .btn {
-    background: #3897f0;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 14px;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-
-  .btn:hover {
-    background: #2f7ed8;
-  }
-
-  .coins {
-    font-weight: bold;
-    color: #ff9900;
-  }
-
-  .shop-item {
-    background: #fff;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  .rules {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    line-height: 1.6;
-  }
-
-  input, textarea {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin-top: 10px;
-    margin-bottom: 15px;
-  }
-
-  footer {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #777;
-    padding: 15px;
+  .blurred-video.unblurred {
+    filter: none;
+    pointer-events: auto;
+    user-select: auto;
   }
 </style>
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 font-sans">
 
-<header>
-  <h1>🎬 VideoHub</h1>
-  <nav>
-    <a href="#" onclick="showSection('feed')">🏠 Feed</a>
-    <a href="#" onclick="showSection('upload')">⬆️ Upload</a>
-    <a href="#" onclick="showSection('shop')">🛒 Shop</a>
-    <a href="#" onclick="showSection('rules')">📜 Rules</a>
-  </nav>
-  <div>💰 <span id="coins">0</span> VVC</div>
-</header>
+<div id="app" class="flex min-h-screen">
 
-<div id="content">
-  <!-- Feed Section -->
-  <section id="feed" class="section active">
-    <h2>📺 Video Feed</h2>
-    <p>Watch videos, earn <b>Virtual VideoHub Coins</b> and upgrade your experience!</p>
-    <div id="feedContainer"></div>
-  </section>
+  <!-- Sidebar -->
+  <aside class="w-20 bg-indigo-600 dark:bg-indigo-900 flex flex-col items-center py-6 space-y-6 text-indigo-100">
+    <h1 class="text-2xl font-bold tracking-wide mb-8">📺</h1>
+    <button title="Home" id="btn-feed" class="sidebar-btn active" aria-label="Home">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m0-6H7v6a2 2 0 002 2h6a2 2 0 002-2v-6z" />
+      </svg>
+    </button>
+    <button title="Upload Video" id="btn-upload" class="sidebar-btn" aria-label="Upload Video">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12v8m0-8l-4 4m4-4l4 4M4 12v-1a4 4 0 014-4h8a4 4 0 014 4v1" />
+      </svg>
+    </button>
+    <button title="Store" id="btn-store" class="sidebar-btn" aria-label="Store">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V5a1 1 0 00-1-1H9a1 1 0 00-1 1v6m-4 0h14l1 9H4l1-9z" />
+      </svg>
+    </button>
+    <button title="Settings" id="btn-settings" class="sidebar-btn" aria-label="Settings">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.25 3v2.25M11.25 18.75v2.25M20.25 11.25h-2.25M6 11.25H3.75m15.75 3a6 6 0 11-12 0 6 6 0 0112 0z" />
+      </svg>
+    </button>
+  </aside>
 
-  <!-- Upload Section -->
-  <section id="upload" class="section">
-    <h2>⬆️ Upload Instagram Video</h2>
-    <p>Paste your <b>Instagram video URL</b> below (example: <code>https://www.instagram.com/reel/.../</code>)</p>
-    <input type="text" id="videoURL" placeholder="Enter Instagram video link here...">
-    <button class="btn" onclick="addVideo()">Add Video</button>
-  </section>
+  <!-- Main Content -->
+  <main class="flex-1 p-6 overflow-y-auto max-h-screen">
 
-  <!-- Shop Section -->
-  <section id="shop" class="section">
-    <h2>🛒 VideoHub Shop</h2>
-    <p>Spend your coins wisely to unlock premium features and perks!</p>
-    <div id="shopContainer"></div>
-  </section>
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+      <h2 class="text-3xl font-extrabold tracking-tight">VideoHub</h2>
+      <div class="flex items-center space-x-6">
+        <div class="flex items-center space-x-2 bg-indigo-100 dark:bg-indigo-800 rounded px-3 py-1 select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600 dark:text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span id="coin-count" class="font-semibold text-indigo-700 dark:text-indigo-200">0 VVC</span>
+        </div>
+        <select id="theme-selector" aria-label="Theme selector" class="rounded border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900 px-2 py-1 text-indigo-900 dark:text-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="light">Light Theme</option>
+          <option value="dark">Dark Theme</option>
+          <option value="neon">Neon Theme</option>
+          <option value="sunset">Sunset Theme</option>
+        </select>
+      </div>
+    </header>
 
-  <!-- Rules Section -->
-  <section id="rules" class="section">
-    <h2>📜 VideoHub Rules & Guidelines</h2>
-    <div class="rules">
-      <p>Welcome to **VideoHub** — a creative community inspired by social video sharing!</p>
-      <ul>
-        <li>✅ Only upload **Instagram video links**.</li>
-        <li>🚫 No explicit, copyrighted, or harmful content.</li>
-        <li>💰 Earn **Virtual VideoHub Coins (VVC)** by watching videos.</li>
-        <li>🎁 Use your coins in the **Shop** to unlock perks.</li>
-        <li>🧠 Be respectful and enjoy sharing content together.</li>
-      </ul>
-      <p>Violation of these rules may result in content removal or suspension.</p>
-    </div>
-  </section>
+    <!-- Content Sections -->
+    <section id="section-feed" class="space-y-8">
+      <h3 class="text-xl font-bold mb-4">Feed</h3>
+      <div id="video-feed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Videos inserted dynamically here -->
+      </div>
+    </section>
+
+    <section id="section-upload" class="hidden space-y-6 max-w-lg mx-auto">
+      <h3 class="text-xl font-bold mb-4">Upload Video</h3>
+      <form id="upload-form" class="space-y-4 bg-white dark:bg-gray-800 p-6 rounded shadow">
+        <label for="video-url" class="block font-semibold">Video URL (Instagram or YouTube)</label>
+        <input id="video-url" type="url" placeholder="https://www.instagram.com/reel/..." required
+               class="w-full rounded border border-gray-300 dark:border-gray-600 p-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+        
+        <label class="flex items-center space-x-2">
+          <input id="flag-adult" type="checkbox" />
+          <span>Mark as 18+ Content (Sensitive)</span>
+        </label>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded transition-colors">Upload</button>
+      </form>
+    </section>
+
+    <section id="section-store" class="hidden max-w-2xl mx-auto">
+      <h3 class="text-xl font-bold mb-4">Store</h3>
+      <div id="store-items" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Store items inserted dynamically here -->
+      </div>
+    </section>
+
+    <section id="section-settings" class="hidden max-w-2xl mx-auto space-y-6">
+      <h3 class="text-xl font-bold mb-4">Platform Rules & Info</h3>
+      <article class="prose dark:prose-invert max-w-none bg-white dark:bg-gray-800 p-6 rounded shadow overflow-y-auto max-h-96">
+        <h4>Community Guidelines</h4>
+        <ul>
+          <li>Only upload valid Instagram or YouTube video URLs.</li>
+          <li>Mark videos as 18+ if they contain sensitive content.</li>
+          <li>Respect others and avoid posting harmful or illegal content.</li>
+          <li>Do not attempt to circumvent content restrictions.</li>
+          <li>Earn Virtual VideoHub Coins (VVC) by watching videos and participate responsibly.</li>
+        </ul>
+        <h4>About Virtual VideoHub Coins (VVC)</h4>
+        <p>You earn VVC by watching videos in the feed. Use VVC to purchase store items like ad blockers and custom effects.</p>
+        <h4>Upload Policy</h4>
+        <p>VideoHub does not host videos directly but stores URLs. We rely on external platforms for video hosting.</p>
+      </article>
+    </section>
+
+  </main>
 </div>
 
-<footer>
-  © 2025 VideoHub — Created for entertainment and learning. All rights reserved.
-</footer>
-
 <script>
-  let coins = 100;
-  let videos = [];
+  // --- Theme handling ---
+  const themes = {
+    light: {
+      name: "Light",
+      classList: ["bg-gray-50", "text-gray-900", "dark:bg-gray-50", "dark:text-gray-900"]
+    },
+    dark: {
+      name: "Dark",
+      classList: ["bg-gray-900", "text-gray-100", "dark:bg-gray-900", "dark:text-gray-100"]
+    },
+    neon: {
+      name: "Neon",
+      classList: ["bg-black", "text-green-400", "neon-theme"]
+    },
+    sunset: {
+      name: "Sunset",
+      classList: ["bg-gradient-to-br", "from-pink-500", "via-red-500", "to-yellow-400", "text-white"]
+    }
+  };
 
-  const coinsEl = document.getElementById("coins");
-  const feedContainer = document.getElementById("feedContainer");
-  const shopContainer = document.getElementById("shopContainer");
+  function applyTheme(theme) {
+    document.body.className = "";
+    if (theme === "neon") {
+      document.body.style.backgroundColor = "#000";
+      document.body.style.color = "#39ff14";
+      document.body.style.transition = "all 0.3s ease";
+    } else if (theme === "sunset") {
+      document.body.style.backgroundImage = "linear-gradient(to bottom right, #ec4899, #ef4444, #fbbf24)";
+      document.body.style.color = "#fff";
+      document.body.style.transition = "all 0.3s ease";
+    } else if (theme === "dark") {
+      document.body.classList.add("bg-gray-900", "text-gray-100");
+      document.body.style.backgroundImage = "";
+    } else {
+      // light
+      document.body.classList.add("bg-gray-50", "text-gray-900");
+      document.body.style.backgroundImage = "";
+    }
+  }
 
-  const shopItems = [
-    { name: "Watch in Full HD (permanent)", cost: 50 },
-    { name: "Remove Ads Forever", cost: 75 },
-    { name: "Special Visual Effects", cost: 30 },
-    { name: "Verified Creator Badge", cost: 100 }
+  // --- VideoHub Data & State ---
+
+  // Stored videos format:
+  // { id: string, url: string, type: 'instagram'|'youtube', title: string, adult: bool }
+  // id is a unique identifier (timestamp+random)
+
+  // Virtual VideoHub Coins - VVC
+  let vvc = 0;
+
+  // Default videos preloaded
+  const defaultVideos = [
+    {
+      id: "vid1",
+      url: "https://www.youtube.com/embed/tgbNymZ7vqY",
+      type: "youtube",
+      title: "Relaxing Music (YouTube)",
+      adult: false
+    },
+    {
+      id: "vid2",
+      url: "https://www.instagram.com/reel/CQZxhQOljJ8/embed",
+      type: "instagram",
+      title: "Cool Instagram Reel",
+      adult: false
+    },
+    {
+      id: "vid3",
+      url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      type: "youtube",
+      title: "Never Gonna Give You Up",
+      adult: false
+    },
+    {
+      id: "vid4",
+      url: "https://www.instagram.com/reel/CFBJr7tH2fN/embed",
+      type: "instagram",
+      title: "Awesome Skate Reel",
+      adult: false
+    }
   ];
 
-  function showSection(id) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+  let videos = [];
+
+  // Store items with prices in VVC and descriptions
+  const storeItems = [
+    {
+      id: "blockAds",
+      name: "Ad Blocker",
+      price: 50,
+      description: "Remove all ads from VideoHub experience."
+    },
+    {
+      id: "themeNeon",
+      name: "Unlock Neon Theme",
+      price: 30,
+      description: "Enable vibrant Neon theme for your interface."
+    },
+    {
+      id: "themeSunset",
+      name: "Unlock Sunset Theme",
+      price: 30,
+      description: "Enjoy warm Sunset theme on VideoHub."
+    },
+    {
+      id: "animations",
+      name: "Animations Pack",
+      price: 40,
+      description: "Unlock cool UI animations and effects."
+    }
+  ];
+
+  // User purchases state
+  let purchases = {
+    adBlocker: false,
+    neonThemeUnlocked: false,
+    sunsetThemeUnlocked: false,
+    animationsUnlocked: false
+  };
+
+  // --- Utils ---
+
+  function saveState() {
+    localStorage.setItem("videohub_videos", JSON.stringify(videos));
+    localStorage.setItem("videohub_vvc", vvc);
+    localStorage.setItem("videohub_purchases", JSON.stringify(purchases));
+    localStorage.setItem("videohub_theme", currentTheme);
   }
 
-  function addVideo() {
-    const url = document.getElementById("videoURL").value.trim();
-    if (!url.includes("instagram.com")) {
-      alert("Only Instagram video links are allowed!");
+  function loadState() {
+    const savedVideos = localStorage.getItem("videohub_videos");
+    if (savedVideos) {
+      try {
+        videos = JSON.parse(savedVideos);
+      } catch {
+        videos = [...defaultVideos];
+      }
+    } else {
+      videos = [...defaultVideos];
+    }
+
+    const savedVVC = localStorage.getItem("videohub_vvc");
+    vvc = savedVVC ? parseInt(savedVVC) || 0 : 0;
+
+    const savedPurchases = localStorage.getItem("videohub_purchases");
+    if (savedPurchases) {
+      try {
+        purchases = JSON.parse(savedPurchases);
+      } catch {
+        purchases = { ...purchases };
+      }
+    }
+
+    const savedTheme = localStorage.getItem("videohub_theme");
+    if (savedTheme && Object.keys(themes).includes(savedTheme)) {
+      currentTheme = savedTheme;
+    } else {
+      currentTheme = "light";
+    }
+  }
+
+  // Validate URLs for Instagram or YouTube embeddable videos
+  function validateVideoURL(url) {
+    try {
+      const u = new URL(url);
+      if (
+        (u.hostname.includes("youtube.com") && u.searchParams.get("v")) || 
+        u.hostname.includes("youtu.be") ||
+        (u.hostname.includes("instagram.com") && (u.pathname.includes("/reel/") || u.pathname.includes("/p/")))
+      ) {
+        return true;
+      }
+      // Allow embed URLs too
+      if (
+        url.includes("youtube.com/embed") ||
+        url.includes("instagram.com/reel") ||
+        url.includes("instagram.com/p/")
+      ) {
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  // Extract embed URL from normal URL (YouTube or Instagram)
+  function getEmbedURL(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes("youtube.com")) {
+        // if normal watch URL
+        if (u.pathname === "/watch") {
+          const v = u.searchParams.get("v");
+          if (v) return `https://www.youtube.com/embed/${v}`;
+        }
+        // if embed URL
+        if (u.pathname.startsWith("/embed/")) return url;
+      }
+      if (u.hostname.includes("youtu.be")) {
+        const v = u.pathname.substring(1);
+        if (v) return `https://www.youtube.com/embed/${v}`;
+      }
+      if (u.hostname.includes("instagram.com")) {
+        // Instagram reels/p posts embed format
+        if (u.pathname.includes("/reel/") || u.pathname.includes("/p/")) {
+          return `https://www.instagram.com${u.pathname}embed`;
+        }
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  // Generate unique ID
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2,5);
+  }
+
+  // --- Rendering functions ---
+
+  const videoFeedElem = document.getElementById("video-feed");
+  const coinCountElem = document.getElementById("coin-count");
+  const storeItemsElem = document.getElementById("store-items");
+  const themeSelector = document.getElementById("theme-selector");
+
+  let currentTheme = "light";
+
+  function renderVideoCard(video) {
+    const isAdult = video.adult;
+
+    // Container
+    const card = document.createElement("div");
+    card.className = "bg-white dark:bg-gray-800 rounded shadow overflow-hidden flex flex-col";
+
+    // Title
+    const title = document.createElement("h4");
+    title.textContent = video.title || "Untitled Video";
+    title.className = "font-semibold px-4 py-2 truncate";
+    card.appendChild(title);
+
+    // Video container with blur logic if adult content
+    const videoWrapper = document.createElement("div");
+    videoWrapper.className = "relative";
+
+    // iframe embed
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("allowfullscreen", "");
+    iframe.setAttribute("frameborder", "0");
+    iframe.width = "100%";
+    iframe.height = "240";
+    iframe.src = video.url;
+    iframe.className = "w-full h-60";
+
+    if (isAdult) {
+      iframe.classList.add("blurred-video");
+    }
+
+    videoWrapper.appendChild(iframe);
+
+    if (isAdult) {
+      // Overlay with confirmation button
+      const overlay = document.createElement("div");
+      overlay.className = "absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center text-white space-y-4 px-4";
+
+      const warning = document.createElement("p");
+      warning.textContent = "⚠️ This video contains 18+ content. Do you want to continue watching?";
+      warning.className = "text-center font-semibold";
+
+      const btnContinue = document.createElement("button");
+      btnContinue.textContent = "Yes, Show Video";
+      btnContinue.className = "bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold";
+
+      btnContinue.addEventListener("click", () => {
+        iframe.classList.remove("blurred-video");
+        iframe.classList.add("unblurred");
+        overlay.remove();
+      });
+
+      overlay.appendChild(warning);
+      overlay.appendChild(btnContinue);
+      videoWrapper.appendChild(overlay);
+    }
+
+    card.appendChild(videoWrapper);
+
+    // Button to 'Watch & Earn VVC'
+    const btnWatch = document.createElement("button");
+    btnWatch.textContent = "Watch & Earn VVC (+5)";
+    btnWatch.className = "bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-b px-4 py-2 w-full transition-colors";
+
+    btnWatch.addEventListener("click", () => {
+      vvc += 5;
+      saveState();
+      renderCoinCount();
+      alert("You've earned 5 Virtual VideoHub Coins (VVC)!");
+    });
+
+    card.appendChild(btnWatch);
+
+    return card;
+  }
+
+  function renderVideoFeed() {
+    videoFeedElem.innerHTML = "";
+    if (videos.length === 0) {
+      videoFeedElem.textContent = "No videos available. Upload some to get started!";
       return;
     }
-    videos.push(url);
-    document.getElementById("videoURL").value = "";
-    renderFeed();
-    alert("Video added successfully!");
-  }
-
-  function renderFeed() {
-    feedContainer.innerHTML = "";
-    videos.forEach((link, i) => {
-      const div = document.createElement("div");
-      div.className = "video-card";
-      div.innerHTML = `
-        <blockquote class="instagram-media" data-instgrm-permalink="${link}" data-instgrm-version="14"></blockquote>
-        <div class="video-info">
-          <button class="btn" onclick="earnCoins(${i})">🎁 Earn 10 VVC</button>
-        </div>`;
-      feedContainer.appendChild(div);
-    });
-    if (typeof instgrm !== "undefined") instgrm.Embeds.process();
-  }
-
-  function earnCoins(index) {
-    coins += 10;
-    coinsEl.textContent = coins;
-    alert("🎉 You earned 10 Virtual VideoHub Coins!");
-  }
-
-  function renderShop() {
-    shopContainer.innerHTML = "";
-    shopItems.forEach((item, i) => {
-      const div = document.createElement("div");
-      div.className = "shop-item";
-      div.innerHTML = `
-        <b>${item.name}</b><br>
-        💰 Cost: ${item.cost} VVC<br>
-        <button class="btn" onclick="buyItem(${i})">Buy</button>`;
-      shopContainer.appendChild(div);
+    videos.forEach(video => {
+      const card = renderVideoCard(video);
+      videoFeedElem.appendChild(card);
     });
   }
 
-  function buyItem(i) {
-    const item = shopItems[i];
-    if (coins < item.cost) {
-      alert("Not enough coins!");
+  function renderCoinCount() {
+    coinCountElem.textContent = `${vvc} VVC`;
+  }
+
+  function renderStore() {
+    storeItemsElem.innerHTML = "";
+    storeItems.forEach(item => {
+      const itemCard = document.createElement("div");
+      itemCard.className = "bg-white dark:bg-gray-800 p-4 rounded shadow flex flex-col justify-between";
+
+      const name = document.createElement("h4");
+      name.textContent = item.name;
+      name.className = "font-bold mb-2";
+
+      const desc = document.createElement("p");
+      desc.textContent = item.description;
+      desc.className = "text-gray-700 dark:text-gray-300 mb-4";
+
+      const price = document.createElement("p");
+      price.textContent = `${item.price} VVC`;
+      price.className = "font-semibold mb-4";
+
+      const btnBuy = document.createElement("button");
+      btnBuy.textContent = "Buy";
+      btnBuy.className = "bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded";
+      btnBuy.addEventListener("click", () => {
+        if (vvc < item.price) {
+          alert("You don't have enough VVC to buy this item.");
+          return;
+        }
+        if (item.id === "blockAds" && purchases.adBlocker) {
+          alert("You already own the Ad Blocker.");
+          return;
+        }
+        if (item.id === "themeNeon" && purchases.neonThemeUnlocked) {
+          alert("Neon Theme is already unlocked.");
+          return;
+        }
+        if (item.id === "themeSunset" && purchases.sunsetThemeUnlocked) {
+          alert("Sunset Theme is already unlocked.");
+          return;
+        }
+        if (item.id === "animations" && purchases.animationsUnlocked) {
+          alert("Animations Pack is already unlocked.");
+          return;
+        }
+
+        vvc -= item.price;
+        switch (item.id) {
+          case "blockAds":
+            purchases.adBlocker = true;
+            alert("Ad Blocker purchased! Ads will no longer show.");
+            break;
+          case "themeNeon":
+            purchases.neonThemeUnlocked = true;
+            alert("Neon Theme unlocked! Select it from theme menu.");
+            break;
+          case "themeSunset":
+            purchases.sunsetThemeUnlocked = true;
+            alert("Sunset Theme unlocked! Select it from theme menu.");
+            break;
+          case "animations":
+            purchases.animationsUnlocked = true;
+            alert("Animations Pack unlocked! Enjoy new effects.");
+            break;
+        }
+        saveState();
+        renderCoinCount();
+      });
+
+      itemCard.appendChild(name);
+      itemCard.appendChild(desc);
+      itemCard.appendChild(price);
+      itemCard.appendChild(btnBuy);
+      storeItemsElem.appendChild(itemCard);
+    });
+  }
+
+  // --- Navigation and UI handling ---
+  const sections = {
+    feed: document.getElementById("section-feed"),
+    upload: document.getElementById("section-upload"),
+    store: document.getElementById("section-store"),
+    settings: document.getElementById("section-settings")
+  };
+
+  const buttons = {
+    feed: document.getElementById("btn-feed"),
+    upload: document.getElementById("btn-upload"),
+    store: document.getElementById("btn-store"),
+    settings: document.getElementById("btn-settings")
+  };
+
+  function switchSection(section) {
+    Object.keys(sections).forEach(key => {
+      if (key === section) {
+        sections[key].classList.remove("hidden");
+        buttons[key].classList.add("active", "bg-indigo-700");
+      } else {
+        sections[key].classList.add("hidden");
+        buttons[key].classList.remove("active", "bg-indigo-700");
+      }
+    });
+  }
+
+  Object.entries(buttons).forEach(([key, btn]) => {
+    btn.addEventListener("click", () => switchSection(key));
+  });
+
+  // --- Upload form handling ---
+  const uploadForm = document.getElementById("upload-form");
+  uploadForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const urlInput = document.getElementById("video-url");
+    const adultFlag = document.getElementById("flag-adult");
+    const url = urlInput.value.trim();
+
+    if (!validateVideoURL(url)) {
+      alert("Invalid video URL. Please enter a valid Instagram or YouTube video URL.");
       return;
     }
-    coins -= item.cost;
-    coinsEl.textContent = coins;
-    alert(`✅ Purchased: ${item.name}`);
+
+    const embedURL = getEmbedURL(url);
+    if (!embedURL) {
+      alert("Could not extract embed URL from the provided link.");
+      return;
+    }
+
+    // Create video entry
+    const video = {
+      id: generateId(),
+      url: embedURL,
+      type: embedURL.includes("instagram") ? "instagram" : "youtube",
+      title: `User Uploaded Video`,
+      adult: adultFlag.checked
+    };
+
+    videos.unshift(video);
+    saveState();
+    renderVideoFeed();
+
+    alert("Video uploaded successfully!");
+
+    // Reset form
+    urlInput.value = "";
+    adultFlag.checked = false;
+    switchSection("feed");
+  });
+
+  // --- Theme selector handling ---
+  themeSelector.addEventListener("change", (e) => {
+    const selected = e.target.value;
+    if ((selected === "neon" && !purchases.neonThemeUnlocked) ||
+        (selected === "sunset" && !purchases.sunsetThemeUnlocked)) {
+      alert("You need to buy this theme first in the Store!");
+      themeSelector.value = currentTheme;
+      return;
+    }
+    currentTheme = selected;
+    applyTheme(currentTheme);
+    saveState();
+  });
+
+  // --- Initialization ---
+
+  function init() {
+    loadState();
+    renderVideoFeed();
+    renderCoinCount();
+    renderStore();
+    applyTheme(currentTheme);
+    themeSelector.value = currentTheme;
+    switchSection("feed");
   }
 
-  renderFeed();
-  renderShop();
-  coinsEl.textContent = coins;
+  init();
+
+  // --- Ad blocker simulation ---
+  // If user has ad blocker purchased, do not show ads.
+  // Since no real ads here, just a placeholder for expansion.
+
 </script>
-<script async src="//www.instagram.com/embed.js"></script>
 
 </body>
 </html>
