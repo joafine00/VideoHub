@@ -40,20 +40,12 @@
     margin-bottom: 10px;
     color: #ff3c00;
   }
-  nav.sidebar input[type="text"] {
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    margin-bottom: 20px;
-    font-size: 1rem;
-  }
-  nav.sidebar label {
-    margin: 10px 0 5px;
-  }
+  nav.sidebar input[type="text"],
   nav.sidebar input[type="url"] {
     padding: 8px;
     border-radius: 6px;
     border: none;
+    margin-bottom: 20px;
     font-size: 1rem;
   }
   nav.sidebar button {
@@ -189,14 +181,18 @@
   const videoURLInput = document.getElementById('videoURL');
   const uploadBtn = document.getElementById('uploadBtn');
 
+  // Mixed default videos: Rickroll + Bedwars Hypixel gameplay
   const defaultVideos = [
-  { id: "lqQu02K57lg", title: "Playing Bedwars In Hypixel" },  // Bedwars Gameplay 1
-  { id: "H5xyqzEL7no", title: "Playing Bedwars In Hypixel" },  // Bedwars Gameplay 2
-  { id: "vK1V1dXFOOk", title: "Playing Bedwars In Hypixel" },  // Bedwars Gameplay 3
-  { id: "9LVb1p4MMiQ", title: "Playing Bedwars In Hypixel" },  // Bedwars Gameplay 4
-  { id: "F_Q2yNG7iyw", title: "Playing Bedwars In Hypixel" },  // Bedwars Gameplay 5
-];
+    { id: "dQw4w9WgXcQ", title: "Never Gonna Give You Up" }, // Rickroll
+    { id: "lqQu02K57lg", title: "Playing Bedwars In Hypixel" },
+    { id: "H5xyqzEL7no", title: "Playing Bedwars In Hypixel" },
+    { id: "vK1V1dXFOOk", title: "Playing Bedwars In Hypixel" },
+    { id: "9LVb1p4MMiQ", title: "Playing Bedwars In Hypixel" },
+    { id: "F_Q2yNG7iyw", title: "Playing Bedwars In Hypixel" }
+  ];
 
+  // State: all videos to show (default + user)
+  let videos = [];
 
   // Load from localStorage
   function loadState() {
@@ -221,7 +217,6 @@
 
   // Validate YouTube URL (simplified)
   function extractYouTubeID(url) {
-    // Match youtu.be/xxxxx or youtube.com/watch?v=xxxxx
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
@@ -231,6 +226,9 @@
   function renderCoinCount() {
     coinCounter.textContent = `VVC Balance: ${vvc}`;
   }
+
+  // Store players to control multiple YT iframes
+  let players = {};
 
   // Create video card
   function createVideoCard(video) {
@@ -242,14 +240,14 @@
     title.className = 'video-title';
     card.appendChild(title);
 
-    // Create iframe with enablejsapi=1 to allow JS API control
-    const iframe = document.createElement('iframe');
-    iframe.width = "320";
-    iframe.height = "180";
-    iframe.src = `https://www.youtube.com/embed/${video.id}?enablejsapi=1&origin=${location.origin}`;
-    iframe.frameBorder = "0";
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-    iframe.allowFullscreen = true;
+    // iframe ID unique
+    const iframeId = `ytplayer-${video.id}`;
+
+    // iframe
+    const iframe = document.createElement('div');
+    iframe.id = iframeId;
+    iframe.style.width = "320px";
+    iframe.style.height = "180px";
     card.appendChild(iframe);
 
     const btnWatch = document.createElement('button');
@@ -264,9 +262,7 @@
       btnWatch.className = "btn-watch-done";
     }
 
-    // YT Player API to detect video end
-    let player;
-
+    // Create YT player for this iframe
     function onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.ENDED) {
         if (!hasWatched(video.id)) {
@@ -276,21 +272,14 @@
       }
     }
 
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player(iframe, {
-        events: { 'onStateChange': onPlayerStateChange }
-      });
-    }
-
-    // Load YT API if not loaded
-    if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-      const tag = document.createElement('script');
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.head.appendChild(tag);
-      window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
-    } else {
-      onYouTubeIframeAPIReady();
-    }
+    players[iframeId] = new YT.Player(iframeId, {
+      videoId: video.id,
+      width: 320,
+      height: 180,
+      events: {
+        'onStateChange': onPlayerStateChange
+      }
+    });
 
     btnWatch.addEventListener('click', () => {
       if (!hasWatched(video.id)) {
@@ -323,21 +312,32 @@
     });
   }
 
-  // Initialize videos array with default videos + any uploaded saved videos
-  let videos = [];
+  // Load videos from localStorage + default
   function loadVideos() {
-    // load user uploaded videos from localStorage
     const userVideos = JSON.parse(localStorage.getItem("userVideos") || "[]");
     videos = [...defaultVideos, ...userVideos];
   }
 
-  // Add new video to userVideos and refresh
+  // Add user video and refresh
   function addUserVideo(video) {
     const userVideos = JSON.parse(localStorage.getItem("userVideos") || "[]");
+    // Prevent duplicates
+    if (userVideos.some(v => v.id === video.id) || videos.some(v => v.id === video.id)) {
+      alert("This video is already in the list.");
+      return;
+    }
     userVideos.push(video);
     localStorage.setItem("userVideos", JSON.stringify(userVideos));
     loadVideos();
     renderVideos(searchInput.value);
+  }
+
+  // YT API ready callback
+  function onYouTubeIframeAPIReady() {
+    loadState();
+    loadVideos();
+    renderCoinCount();
+    renderVideos();
   }
 
   // Event listeners
@@ -348,11 +348,6 @@
       alert("Please enter a valid YouTube video URL!");
       return;
     }
-    // Prevent duplicate videos
-    if (videos.some(v => v.id === id)) {
-      alert("This video is already in the list.");
-      return;
-    }
     addUserVideo({ id, title: "Playing Bedwars In Hypixel" });
     videoURLInput.value = '';
   });
@@ -361,12 +356,11 @@
     renderVideos(searchInput.value);
   });
 
-  // Initial load
-  loadState();
-  loadVideos();
-  renderCoinCount();
-  renderVideos();
-
+  // Load YT Iframe API script dynamically
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+  window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 </script>
 </body>
 </html>
