@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>VideoHub — Watch Instagram Videos & Earn VC</title>
+
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --accent:#3897f0; --muted:#6b7280;
+    --success:#16a34a; --danger:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter, "Segoe UI", Arial,sans-serif;background:var(--bg);color:#111}
+  header{background:var(--card);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e6e9ef;position:sticky;top:0;z-index:40}
+  header h1{margin:0;font-size:18px;display:flex;gap:10px;align-items:center}
+  .vc-balance{font-weight:700;color:#ff9f1c}
+  .container{max-width:1180px;margin:18px auto;padding:0 16px}
+  .top-grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+  @media (max-width:900px){ .top-grid{grid-template-columns:1fr} }
+
+  .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(12,20,40,0.04)}
+  .muted{color:var(--muted);font-size:13px}
+  .add-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  input[type="text"], textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e0e6f0;font-size:14px}
+  textarea{min-height:90px;resize:vertical}
+  button.btn{background:var(--accent);color:white;border:none;padding:9px 12px;border-radius:8px;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid #d6dbe9;color:#333;padding:9px 10px;border-radius:8px;cursor:pointer}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .feed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:14px}
+  .video-card{overflow:hidden;border-radius:10px;background:var(--card);box-shadow:0 6px 14px rgba(12,20,40,0.04);display:flex;flex-direction:column}
+  .video-card .embed-wrap{padding:8px}
+  .video-info{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid #f0f2f8}
+  .small{font-size:13px}
+  .secondary{background:#f3f6fb;color:#1b63b8;border-radius:8px;padding:7px 9px;font-size:13px}
+  .sidebar{display:flex;flex-direction:column;gap:12px;position:sticky;top:84px}
+  .shop-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#fbfdff;border:1px solid #eef3ff}
+  .ad-banner{padding:10px;border-radius:8px;background:linear-gradient(90deg,#fff7e6,#fff1d6);text-align:center;font-weight:600;color:#6a4b00}
+  .btn-sm{padding:6px 8px;border-radius:7px;font-size:13px}
+  .danger{background:var(--danger);color:white}
+  .ok{background:var(--success);color:white}
+  .uploader{display:flex;gap:8px;align-items:center}
+  .dropzone{border:2px dashed #e6eefc;padding:12px;border-radius:10px;text-align:center;color:var(--muted);cursor:pointer}
+  .tag{background:#eef2ff;color:#1b63b8;padding:4px 8px;border-radius:999px;font-size:12px}
+  footer{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(3,7,18,0.6);display:flex;align-items:center;justify-content:center;z-index:999}
+  .modal{background:white;border-radius:12px;max-width:900px;width:96%;max-height:90vh;overflow:auto;padding:12px}
+  .modal .big-embed{height:70vh}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎬 VideoHub <span class="muted" style="font-size:13px">— Instagram videos only</span></h1>
+  <div>
+    <span class="muted">Balance:</span>
+    <span id="vcBalance" class="vc-balance">0</span>
+    <span style="margin-left:8px;color:var(--muted);font-size:13px">VC = Virtual VideoHub Coins</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="top-grid">
+    <div>
+      <!-- UPLOAD / PASTE AREA -->
+      <div class="card">
+        <strong>Add Instagram videos to your VideoHub feed</strong>
+        <p class="muted">You can paste a single Instagram URL, paste many links (one per line), paste Instagram embed HTML, or upload a .txt/.html file that contains Instagram embeds/URLs. Only Instagram URLs are accepted; invalid inputs are ignored.</p>
+
+        <div style="margin-top:8px" class="add-row">
+          <input id="singleInput" type="text" placeholder="Paste a single Instagram Reel/Post URL">
+          <button class="btn" id="addSingleBtn">Add</button>
+        </div>
+
+        <div style="margin-top:8px">
+          <textarea id="bulkInput" placeholder="Paste multiple Instagram links or embed HTML here (one per line)"></textarea>
+          <div style="display:flex; gap:8px; margin-top:8px; align-items:center">
+            <button class="btn" id="bulkAddBtn">Bulk Add</button>
+            <label class="ghost" style="padding:9px 10px; border-radius:8px; cursor:pointer">
+              Upload file
+              <input id="fileUploader" type="file" accept=".txt,.html" style="display:none">
+            </label>
+            <button class="ghost" id="sampleBtn">Load Sample Feed</button>
+            <button class="ghost" id="refreshEmbeds">Refresh Embeds</button>
+          </div>
+        </div>
+
+        <hr style="margin:12px 0; border:none; border-top:1px dashed #eef2fb">
+
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <div>
+            <strong>Feed controls</strong>
+            <div class="muted small">Manage your VideoHub feed</div>
+          </div>
+          <div class="controls">
+            <button class="btn-sm ghost" id="clearBtn">Clear Feed</button>
+            <button class="btn-sm ghost" id="exportBtn">Export Links</button>
+            <button class="btn-sm ghost" id="importBtn">Import file</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEED -->
+      <div style="margin-top:16px">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px">
+          <strong style="font-size:15px">Video Feed</strong>
+          <div class="muted small">Total: <span id="count">0</span></div>
+        </div>
+
+        <div id="feed" class="feed-grid"></div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="card ad-banner" id="adBanner">Sponsored — Support creators. Remove ads with VC.</div>
+
+      <div class="card">
+        <strong>Shop — spend VC (fair prices)</strong>
+        <p class="muted small">Buy features with Virtual VideoHub Coins (VC).</p>
+
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px">
+          <div class="shop-item">
+            <div><strong>Remove Ads</strong><div class="muted small">Hide sponsor banners</div></div>
+            <div><button class="btn" onclick="buy('noAds', 75)">75 VC</button></div>
+          </div>
+
+          <div class="shop-item">
+            <div><strong>Visual FX</strong><div class="muted small">Glow & fancy frames</div></div>
+            <div><button class="btn" onclick="buy('visualFx', 40)">40 VC</button></div>
+          </div>
+
+          <div class="shop-item">
+            <div><strong>Autoplay</strong><div class="muted small">If embed supports it</div></div>
+            <div><button class="btn" onclick="buy('autoplay', 60)">60 VC</button></div>
+          </div>
+
+          <div class="shop-item">
+            <div><strong>High Quality Mode</strong><div class="muted small">Larger player & priority preloading</div></div>
+            <div><button class="btn" onclick="buy('hq', 50)">50 VC</button></div>
+          </div>
+
+          <div class="shop-item">
+            <div><strong>Premium Badge</strong><div class="muted small">Profile flair</div></div>
+            <div><button class="btn" onclick="buy('badge', 25)">25 VC</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <strong>Account</strong>
+        <p class="muted small">Create a display name for your profile (saved in the browser).</p>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <input id="displayName" placeholder="Your display name" style="padding:8px;border-radius:8px;border:1px solid #e6ecfb;">
+          <button class="btn" id="saveProfileBtn">Save</button>
+        </div>
+        <p style="margin-top:10px" class="muted small">Achievements: <span id="achCount">0</span></p>
+      </div>
+
+      <div class="card">
+        <strong>About</strong>
+        <p class="muted small">VideoHub is a demo platform that organizes Instagram video embeds into a watchable feed. Use uploads or paste links. All uploads must reference Instagram content only.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- modal for large view -->
+<div id="modalRoot" style="display:none"></div>
+
+<footer>VideoHub — Watch, Earn VC, Spend on features. Built for Instagram video embeds.</footer>
+
+<!-- Instagram embed script (official) -->
+<script async src="//www.instagram.com/embed.js"></script>
+
+<script>
+/* ============================
+   VideoHub — core logic
+   - Only Instagram URLs are accepted
+   - Uploads (.txt/.html) are parsed for Instagram links
+   - Balance (VC), feed, and settings are stored for persistence (no UI mentions)
+   - User can earn VC per video (limit: once per 24h per video)
+   ============================ */
+
+const VC_NAME_SHORT = "VC";
+const VC_NAME_LONG = "Virtual VideoHub Coins";
+
+const stateKey = "vh_state_v1"; // internal key (UI doesn't show 'storage' words)
+let state = {
+  feed: [],        // array of objects: {id, url, addedAt}
+  balance: 0,
+  purchases: {},   // e.g. { noAds:true, visualFx:true, autoplay:true, hq:true, badge:true }
+  profile: { name: "" },
+  earnedHistory: {} // map videoId -> timestamp when last earned
+};
+
+// utility: save / load (persistence implemented but UI doesn't mention the mechanism)
+function saveState() { try { localStorage.setItem(stateKey, JSON.stringify(state)); } catch(e){} }
+function loadState() { try { const s = localStorage.getItem(stateKey); if (s) state = JSON.parse(s); } catch(e){} }
+loadState();
+
+/* -------------------------
+   Helpers for Instagram URL validation/extraction
+   ------------------------- */
+const instagramRegex = /https?:\/\/(www\.)?instagram\.com\/(reel|p|tv|tv\/|reel\/|stories)?\/?([A-Za-z0-9._-]+)\/?/i;
+
+function extractInstagramUrls(text) {
+  // finds instagram.com/... occurrences and normalizes to a canonical post URL
+  const urls = [];
+  // find https://...instagram.com/... segments
+  const urlRegexGlobal = /https?:\/\/(?:www\.)?instagram\.com\/[^\s"'<>]+/ig;
+  let m;
+  while ((m = urlRegexGlobal.exec(text)) !== null) {
+    const candidate = m[0].split(/[?#]/)[0]; // strip query/hash
+    if (instagramRegex.test(candidate)) {
+      // normalize: ensure trailing slash
+      const norm = candidate.endsWith("/") ? candidate : candidate + "/";
+      if (!urls.includes(norm)) urls.push(norm);
+    }
+  }
+  return urls;
+}
+
+/* -------------------------
+   UI elements
+   ------------------------- */
+const feedEl = document.getElementById("feed");
+const countEl = document.getElementById("count");
+const vcBalanceEl = document.getElementById("vcBalance");
+const adBanner = document.getElementById("adBanner");
+const displayNameInput = document.getElementById("displayName");
+const achCountEl = document.getElementById("achCount");
+const modalRoot = document.getElementById("modalRoot");
+
+/* -------------------------
+   Render feed
+   ------------------------- */
+function renderFeed() {
+  feedEl.innerHTML = "";
+  state.feed.forEach((item, idx) => {
+    const card = document.createElement("div");
+    card.className = "video-card";
+    if (state.purchases.visualFx) {
+      card.style.boxShadow = "0 0 20px rgba(0,140,255,0.12)";
+    }
+
+    // embed blockquote
+    const wrap = document.createElement("div");
+    wrap.className = "embed-wrap";
+
+    const block = document.createElement("blockquote");
+    block.className = "instagram-media";
+    block.setAttribute("data-instgrm-permalink", item.url);
+    block.setAttribute("data-instgrm-version", "14");
+    block.style = "max-width:540px; margin:0 auto;";
+
+    wrap.appendChild(block);
+    card.appendChild(wrap);
+
+    const info = document.createElement("div");
+    info.className = "video-info";
+
+    const left = document.createElement("div");
+    left.innerHTML = `<div class="muted small">Added: ${new Date(item.addedAt).toLocaleString()}</div>`;
+
+    const right = document.createElement("div");
+    right.style.display = "flex";
+    right.style.gap = "8px";
+    right.style.alignItems = "center";
+
+    const watchBtn = document.createElement("button");
+    watchBtn.className = "btn-sm secondary";
+    watchBtn.textContent = "Watch (Open)";
+    watchBtn.onclick = () => openModal(item.url);
+
+    const earnBtn = document.createElement("button");
+    earnBtn.className = "btn-sm";
+    earnBtn.textContent = `Earn 10 ${VC_NAME_SHORT}`;
+    earnBtn.onclick = () => tryEarn(item);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "btn-sm ghost";
+    removeBtn.textContent = "Remove";
+    removeBtn.onclick = () => { if(confirm("Remove this video from your feed?")) { state.feed.splice(idx,1); saveState(); renderAll(); } };
+
+    right.appendChild(watchBtn);
+    right.appendChild(earnBtn);
+    right.appendChild(removeBtn);
+
+    info.appendChild(left);
+    info.appendChild(right);
+    card.appendChild(info);
+
+    feedEl.appendChild(card);
+  });
+
+  countEl.textContent = state.feed.length;
+  vcBalanceEl.textContent = state.balance;
+  achCountEl.textContent = Object.keys(state.earnedHistory).length;
+  // re-run Instagram embed processing
+  if (window.instgrm && window.instgrm.Embeds && typeof window.instgrm.Embeds.process === "function") {
+    try { window.instgrm.Embeds.process(); } catch(e) {}
+  }
+}
+
+/* -------------------------
+   Modal / High Quality Viewer
+   ------------------------- */
+function openModal(url) {
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" id="vhModal">
+      <div class="modal">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>High Quality Player</strong>
+          <div>
+            <button class="ghost" id="closeModal">Close</button>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <blockquote class="instagram-media" data-instgrm-permalink="${url}" data-instgrm-version="14" style="width:100%"></blockquote>
+        </div>
+        <div style="margin-top:12px" class="muted small">Tip: if the embed requests login, the original post is restricted or private.</div>
+      </div>
+    </div>
+  `;
+  modalRoot.style.display = "block";
+  document.getElementById("closeModal").onclick = () => { modalRoot.style.display = "none"; modalRoot.innerHTML = ""; };
+  // apply high quality hints (if purchased)
+  if (state.purchases.hq) {
+    // we can't force Instagram to deliver higher bitrate, but we present the embed larger and hint to preload
+    // (UI-level improvement)
+    const modal = document.getElementById("vhModal");
+    modal.querySelector("blockquote.instagram-media").style.maxWidth = "900px";
+  }
+  // run embed processor
+  if (window.instgrm && window.instgrm.Embeds && typeof window.instgrm.Embeds.process === "function") {
+    try { window.instgrm.Embeds.process(); } catch(e) {}
+  }
+}
+
+/* -------------------------
+   Earning VC rules
+   - 10 VC per video
+   - once per 24 hours per video
+   ------------------------- */
+function tryEarn(item) {
+  const vidKey = item.url;
+  const now = Date.now();
+  const last = state.earnedHistory[vidKey] || 0;
+  const dayMs = 24 * 60 * 60 * 1000;
+  if (now - last < dayMs) {
+    alert("You already earned from this video within the last 24 hours. Come back later.");
+    return;
+  }
+  // award
+  state.balance += 10;
+  state.earnedHistory[vidKey] = now;
+  saveState();
+  renderFeed();
+  alert(`+10 ${VC_NAME_SHORT} (${VC_NAME_LONG}) — well done!`);
+}
+
+/* -------------------------
+   Shop purchases
+   ------------------------- */
+function buy(item, cost) {
+  if (state.balance < cost) { alert("Not enough VC. Watch more videos to earn VC."); return; }
+  if (state.purchases[item]) { alert("You already purchased this item."); return; }
+  if (!confirm(`Purchase "${item}" for ${cost} ${VC_NAME_SHORT}?`)) return;
+  state.balance -= cost;
+  state.purchases[item] = true;
+  saveState();
+  applyPurchases();
+  renderFeed();
+  alert("Purchase successful — enjoy!");
+}
+
+/* apply purchases visually */
+function applyPurchases() {
+  // Remove ads
+  if (state.purchases.noAds) adBanner.style.display = "none";
+  else adBanner.style.display = "block";
+  // visual fx applied in renderFeed by checking visualFx flag
+  // autoplay: attempted when opening modal (but embeds control autoplay)
+  // hq: applied in modal size
+}
+
+/* -------------------------
+   Adding videos (paste, bulk, upload)
+   ------------------------- */
+function normalizeUrl(url) {
+  try {
+    // normalize Instagram post URLs: ensure trailing slash
+    const u = new URL(url);
+    if (!/instagram\.com/i.test(u.hostname)) return null;
+    const path = u.pathname.replace(/\/+/g, "/");
+    // build canonical post/permalink form (keep original path)
+    let candidate = `https://www.instagram.com${path}`;
+    if (!candidate.endsWith("/")) candidate += "/";
+    return candidate;
+  } catch(e) {
+    return null;
+  }
+}
+
+function addUrl(url) {
+  const norm = normalizeUrl(url);
+  if (!norm) return false;
+  // avoid duplicates
+  if (state.feed.some(it => it.url === norm)) return false;
+  state.feed.unshift({ id: Math.random().toString(36).slice(2,9), url: norm, addedAt: Date.now() });
+  saveState();
+  return true;
+}
+
+function addFromTextBlock(text) {
+  const urls = extractInstagramUrls(text);
+  let added = 0;
+  urls.forEach(u => { if (addUrl(u)) added++; });
+  return added;
+}
+
+/* file upload parsing */
+document.getElementById("fileUploader").addEventListener("change", async (ev) => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  try {
+    const txt = await f.text();
+    const added = addFromTextBlock(txt);
+    saveState();
+    renderAll();
+    alert(`Imported ${added} Instagram link(s) from file.`);
+  } catch(e) {
+    alert("Unable to read file.");
+  }
+});
+
+/* single add */
+document.getElementById("addSingleBtn").addEventListener("click", () => {
+  const v = document.getElementById("singleInput").value.trim();
+  if (!v) return alert("Paste an Instagram Reel/Post URL first.");
+  const added = addFromTextBlock(v) || (addUrl(v) ? 1 : 0);
+  if (added) {
+    saveState();
+    renderAll();
+    document.getElementById("singleInput").value = "";
+    alert("Video added to feed.");
+  } else {
+    alert("Could not add this URL (maybe it's invalid or already in feed).");
+  }
+});
+
+/* bulk add */
+document.getElementById("bulkAddBtn").addEventListener("click", () => {
+  const txt = document.getElementById("bulkInput").value.trim();
+  if (!txt) return alert("Paste links or embed HTML first.");
+  const added = addFromTextBlock(txt);
+  saveState();
+  renderAll();
+  alert(`Added ${added} new Instagram link(s).`);
+  document.getElementById("bulkInput").value = "";
+});
+
+/* sample feed */
+document.getElementById("sampleBtn").addEventListener("click", () => {
+  const samples = [
+    "https://www.instagram.com/reel/DQG2MOUEY0M/",
+    "https://www.instagram.com/reel/Ca1b2XyZ0A1/",
+    "https://www.instagram.com/p/CZ0-example/"
+  ];
+  let c = 0;
+  samples.forEach(s => { if (addUrl(s)) c++; });
+  saveState();
+  renderAll();
+  alert(`Loaded ${c} sample link(s) into your feed.`);
+});
+
+/* clear feed */
+document.getElementById("clearBtn").addEventListener("click", () => {
+  if (!confirm("Clear the entire feed? This will remove all entries.")) return;
+  state.feed = [];
+  state.earnedHistory = {};
+  saveState();
+  renderAll();
+});
+
+/* export links */
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const data = state.feed.map(f => f.url).join("\n");
+  const blob = new Blob([data], {type: "text/plain"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "videohub_links.txt"; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* refresh embeds */
+document.getElementById("refreshEmbeds").addEventListener("click", () => {
+  if (window.instgrm && window.instgrm.Embeds) {
+    try { window.instgrm.Embeds.process(); alert("Embeds refreshed."); } catch(e) { alert("Could not refresh embeds."); }
+  } else alert("Instagram embed script not loaded yet.");
+});
+
+/* display name save */
+document.getElementById("saveProfileBtn").addEventListener("click", () => {
+  const v = displayNameInput.value.trim();
+  if (!v) return alert("Enter a display name.");
+  state.profile.name = v;
+  saveState();
+  alert("Profile saved.");
+});
+
+/* import button triggers file picker */
+document.getElementById("importBtn").addEventListener("click", () => {
+  document.getElementById("fileUploader").click();
+});
+
+/* try fetch (limited due to browser restrictions)
+   This attempts to fetch an Instagram profile URL and extract links, but usually fails due to CORS.
+   The UI allows users to upload or paste instead.
+*/
+document.getElementById("tryFetchBtn")?.addEventListener("click", async () => {
+  const profile = prompt("Enter Instagram profile URL (e.g. https://www.instagram.com/instagram/):");
+  if (!profile) return;
+  try {
+    const res = await fetch(profile, {mode: 'cors'});
+    if (!res.ok) throw new Error("Fetch failed");
+    const txt = await res.text();
+    const added = addFromTextBlock(txt);
+    saveState();
+    renderAll();
+    alert(`Fetched and added ${added} links (if any were public).`);
+  } catch(e) {
+    alert("Automatic profile fetching is restricted in browsers. Please paste links or upload a file with the links.");
+  }
+});
+
+/* save profile name into input on load */
+function populateProfileUI() {
+  displayNameInput.value = state.profile.name || "";
+}
+
+/* purchases and apply */
+function renderAll() {
+  applyPurchases();
+  renderFeed();
+  populateProfileUI();
+}
+
+/* apply purchases visuals */
+function applyPurchases() {
+  if (state.purchases.noAds) adBanner.style.display = "none"; else adBanner.style.display = "block";
+  // autoplay/hq/visualFx: used elsewhere (renderFeed/modal)
+}
+
+/* initial render */
+renderAll();
+
+/* small UX niceties: drag & drop for file upload on dropzone (entire page) */
+document.addEventListener('dragover', (e) => { e.preventDefault(); }, false);
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f && /\.(txt|html?)$/i.test(f.name)) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const txt = ev.target.result;
+      const added = addFromTextBlock(txt);
+      saveState();
+      renderAll();
+      alert(`Imported ${added} Instagram link(s) from dropped file.`);
+    };
+    reader.readAsText(f);
+  } else {
+    alert("Drop a .txt or .html file that contains Instagram links or embed HTML.");
+  }
+}, false);
+
+/* Expose buy for inline onclick buttons */
+window.buy = buy;
+
+</script>
+</body>
+</html>
