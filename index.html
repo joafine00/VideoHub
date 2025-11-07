@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VideoHub - Watch & Earn VVC</title>
+<title>VideoHub - Watch Videos</title>
 <style>
   /* Reset básico */
   * {
@@ -68,12 +68,6 @@
     overflow-y: auto;
     background: #181818;
   }
-  .coin-counter {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #ff9a00;
-    margin-bottom: 20px;
-  }
   .videos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill,minmax(350px,1fr));
@@ -110,17 +104,6 @@
   }
   button.btn-watch-enabled:hover {
     background-color: #e63600;
-  }
-  button.btn-watch-disabled,
-  button.btn-watch-done {
-    margin-top: 12px;
-    padding: 10px 14px;
-    font-weight: bold;
-    background-color: #555;
-    border: none;
-    border-radius: 6px;
-    color: #ccc;
-    cursor: not-allowed;
   }
   /* Scrollbar styling */
   main.content::-webkit-scrollbar {
@@ -164,8 +147,6 @@
     <label for="videoURL">YouTube URL:</label>
     <input type="url" id="videoURL" placeholder="https://www.youtube.com/watch?v=..." />
     <button id="uploadBtn">Upload Video</button>
-
-    <div class="coin-counter" id="coinCounter">VVC Balance: 0</div>
   </nav>
   <main class="content">
     <div class="videos-grid" id="videosGrid"></div>
@@ -173,69 +154,49 @@
 </div>
 
 <script>
-  // ======== Variables ========
-  let vvc = 0; // Virtual VideoHub Coins
   const videosGrid = document.getElementById('videosGrid');
-  const coinCounter = document.getElementById('coinCounter');
   const searchInput = document.getElementById('searchInput');
   const videoURLInput = document.getElementById('videoURL');
   const uploadBtn = document.getElementById('uploadBtn');
 
-  // Predefined English videos (verified)
+  // Predefined English videos only (remove non-English)
   const defaultVideos = [
     { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give You Up" },
     { id: "noLL5xy0UnU", title: "30 Minutes (Telly Bridging) Bedwars ASMR Keyboard & Mouse Sounds | Hypixel Bedwars" },
-    { id: "6zp3mt5Dd2c", title: "Round 6: Temporada 3 | Trailer oficial | Netflix (Brazilian Portuguese)" },
     { id: "MsXdUtlDVhk", title: "Lady Gaga - Bloody Mary (TikTok Remix | Speed Up) | Wednesday Dance Scene" }
   ];
 
-  // Load from localStorage
-  function loadState() {
-    const storedVVC = parseInt(localStorage.getItem("vvc"), 10);
-    if (!isNaN(storedVVC)) vvc = storedVVC;
-  }
-  function saveState() {
-    localStorage.setItem("vvc", vvc);
-  }
-  function getWatchedVideos() {
-    return JSON.parse(localStorage.getItem("watchedVideos") || "{}");
-  }
-  function setVideoWatched(videoId) {
-    const watched = getWatchedVideos();
-    watched[videoId] = true;
-    localStorage.setItem("watchedVideos", JSON.stringify(watched));
-  }
-  function hasWatched(videoId) {
-    const watched = getWatchedVideos();
-    return !!watched[videoId];
+  // Load saved videos from localStorage
+  function loadVideos() {
+    const userVideos = JSON.parse(localStorage.getItem("userVideos") || "[]");
+    videos = [...defaultVideos, ...userVideos];
   }
 
-  // Validate YouTube URL (simplified)
+  // Extract YouTube ID from URL
   function extractYouTubeID(url) {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
   }
 
-  // Render coins
-  function renderCoinCount() {
-    coinCounter.textContent = `VVC Balance: ${vvc}`;
+  // Check if video is user uploaded (no title in list) by comparing with default videos
+  function isUserVideo(video) {
+    return !defaultVideos.some(v => v.id === video.id);
   }
 
-  // YouTube API players map
-  const players = new Map();
-
-  // Create video card
+  // Create video card element
   function createVideoCard(video) {
     const card = document.createElement('div');
     card.className = 'video-card';
 
-    const title = document.createElement('h3');
-    title.textContent = video.title;
-    title.className = 'video-title';
-    card.appendChild(title);
+    // Show title only if default video
+    if (!isUserVideo(video)) {
+      const title = document.createElement('h3');
+      title.textContent = video.title;
+      title.className = 'video-title';
+      card.appendChild(title);
+    }
 
-    // Create iframe with enablejsapi=1 to allow JS API control
     const iframe = document.createElement('iframe');
     iframe.width = "320";
     iframe.height = "180";
@@ -246,77 +207,25 @@
     card.appendChild(iframe);
 
     const btnWatch = document.createElement('button');
-    btnWatch.textContent = "Watch & Earn VVC (+5)";
-    btnWatch.disabled = true;
-    btnWatch.className = "btn-watch-disabled";
+    btnWatch.textContent = "Watch Video";
+    btnWatch.className = "btn-watch-enabled";
+    btnWatch.disabled = false;
     card.appendChild(btnWatch);
 
-    if (hasWatched(video.id)) {
-      btnWatch.textContent = "Already Earned";
-      btnWatch.disabled = true;
-      btnWatch.className = "btn-watch-done";
-    }
-
-    // Player state handler
-    function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.ENDED) {
-        if (!hasWatched(video.id)) {
-          btnWatch.disabled = false;
-          btnWatch.className = "btn-watch-enabled";
-        }
-      }
-    }
-
-    // Create player and store it
-    function createPlayer() {
-      const player = new YT.Player(iframe, {
-        events: {
-          'onStateChange': onPlayerStateChange
-        }
-      });
-      players.set(video.id, player);
-    }
-
-    if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-      // Load API script once
-      if (!window.youTubeApiScriptAdded) {
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(tag);
-        window.youTubeApiScriptAdded = true;
-      }
-
-      // Register callback
-      const oldCallback = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = function() {
-        if (oldCallback) oldCallback();
-        createPlayer();
-      };
-    } else {
-      createPlayer();
-    }
-
     btnWatch.addEventListener('click', () => {
-      if (!hasWatched(video.id)) {
-        vvc += 5;
-        setVideoWatched(video.id);
-        saveState();
-        renderCoinCount();
-        btnWatch.textContent = "Already Earned";
-        btnWatch.disabled = true;
-        btnWatch.className = "btn-watch-done";
-        alert("You've earned 5 VVC!");
-      }
+      // Just open the video in new tab or start playing?
+      // Vou abrir em nova aba, já que botão não tem coins ou algo, é só para "assistir"
+      window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank');
     });
 
     return card;
   }
 
-  // Render videos list (with optional search filter)
+  // Render videos grid with optional filter
   function renderVideos(filter = '') {
     videosGrid.innerHTML = '';
     const lowerFilter = filter.toLowerCase();
-    const videosToShow = videos.filter(v => v.title.toLowerCase().includes(lowerFilter));
+    const videosToShow = videos.filter(v => v.title.toLowerCase().includes(lowerFilter) || isUserVideo(v)); // user videos no title, show always
     if (videosToShow.length === 0) {
       videosGrid.innerHTML = '<p>No videos found.</p>';
       return;
@@ -327,17 +236,8 @@
     });
   }
 
-  // Initialize videos array with default videos + any uploaded saved videos
-  let videos = [];
-  function loadVideos() {
-    // load user uploaded videos from localStorage
-    const userVideos = JSON.parse(localStorage.getItem("userVideos") || "[]");
-    videos = [...defaultVideos, ...userVideos];
-  }
-
-  // Add new video to userVideos and refresh
+  // Add new user video (validate via YouTube oEmbed)
   async function addUserVideo(video) {
-    // Check if video exists on YouTube via oEmbed API (no key needed)
     try {
       const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`);
       if (!res.ok) {
@@ -349,11 +249,11 @@
       return;
     }
 
-    // Prevent duplicates
     if (videos.some(v => v.id === video.id)) {
       alert("This video is already in the list.");
       return;
     }
+
     const userVideos = JSON.parse(localStorage.getItem("userVideos") || "[]");
     userVideos.push(video);
     localStorage.setItem("userVideos", JSON.stringify(userVideos));
@@ -361,7 +261,7 @@
     renderVideos(searchInput.value);
   }
 
-  // Event listeners
+  // Event Listeners
   uploadBtn.addEventListener('click', () => {
     const url = videoURLInput.value.trim();
     const id = extractYouTubeID(url);
@@ -369,7 +269,8 @@
       alert("Please enter a valid YouTube video URL!");
       return;
     }
-    addUserVideo({ id, title: "User Uploaded Video" });
+    // For user videos, no title is stored
+    addUserVideo({ id });
     videoURLInput.value = '';
   });
 
@@ -377,12 +278,10 @@
     renderVideos(searchInput.value);
   });
 
-  // Initial load
-  loadState();
+  // Initialize
+  let videos = [];
   loadVideos();
-  renderCoinCount();
   renderVideos();
-
 </script>
 </body>
 </html>
