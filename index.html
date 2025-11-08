@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>VideoHub - Watch & Like Videos</title>
 <style>
-  /* Basic Reset */
   * {
     box-sizing: border-box;
   }
@@ -69,7 +68,7 @@
     border: none;
     font-size: 1rem;
     width: 100%;
-    margin-bottom: 12px;
+    margin-top: auto;
     color: #121212;
   }
   main.content {
@@ -95,7 +94,7 @@
     border-radius: 8px;
     overflow: hidden;
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    padding-bottom: 56.25%;
     background: #000;
   }
   .video-thumbnail img {
@@ -149,7 +148,6 @@
   button.fav-btn:hover:not(.favorited) {
     background-color: #e63600;
   }
-  /* Pagination */
   .pagination {
     margin-top: 25px;
     display: flex;
@@ -176,8 +174,6 @@
     color: #121212;
     cursor: default;
   }
-
-  /* Modal */
   .modal {
     position: fixed;
     top: 0; left: 0;
@@ -248,8 +244,6 @@
   .modal-close:hover {
     color: #ff3c00;
   }
-
-  /* Scrollbar styling for main content */
   main.content::-webkit-scrollbar {
     width: 10px;
   }
@@ -260,8 +254,6 @@
     background-color: #ff3c00;
     border-radius: 10px;
   }
-
-  /* Responsive */
   @media (max-width: 1366px) {
     body {
       min-width: auto;
@@ -311,7 +303,6 @@
   </main>
 </div>
 
-<!-- Modal for playing videos -->
 <div class="modal" id="videoModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle" tabindex="-1">
   <div class="modal-content">
     <span class="modal-close" id="modalCloseBtn" aria-label="Close video">&times;</span>
@@ -339,33 +330,33 @@
   let currentTab = 'all';
   let currentVideoId = null;
 
-  // Default videos with YouTube IDs (can add more)
+  // Default videos with YouTube IDs
   const defaultVideos = [
-    { id: "dQw4w9WgXcQ" },
-    { id: "noLL5xy0UnU" },
-    { id: "6zp3mt5Dd2c" },
-    { id: "MsXdUtlDVhk" },
-    { id: "tAGnKpE4NCI" },
-    { id: "3JZ_D3ELwOQ" },
-    { id: "Zi_XLOBDo_Y" },
-    { id: "V-_O7nl0Ii0" }
+    { id: "dQw4w9WgXcQ", title: null },
+    { id: "noLL5xy0UnU", title: null },
+    { id: "6zp3mt5Dd2c", title: null },
+    { id: "MsXdUtlDVhk", title: null },
+    { id: "tAGnKpE4NCI", title: null },
+    { id: "3JZ_D3ELwOQ", title: null },
+    { id: "Zi_XLOBDo_Y", title: null },
+    { id: "V-_O7nl0Ii0", title: null }
   ];
 
-  // Save/load user videos in localStorage
+  // Load user videos from localStorage
   function loadUserVideos() {
     return JSON.parse(localStorage.getItem('userVideos') || '[]');
   }
   function saveUserVideos(videos) {
     localStorage.setItem('userVideos', JSON.stringify(videos));
   }
-  // Likes saved as object { videoId: true/false }
+  // Likes: { videoId: true/false }
   function loadLikes() {
     return JSON.parse(localStorage.getItem('likes') || '{}');
   }
   function saveLikes(likes) {
     localStorage.setItem('likes', JSON.stringify(likes));
   }
-  // Favorites saved as array of videoIds
+  // Favorites: [videoId, ...]
   function loadFavorites() {
     return JSON.parse(localStorage.getItem('favorites') || '[]');
   }
@@ -373,12 +364,30 @@
     localStorage.setItem('favorites', JSON.stringify(favorites));
   }
 
-  // Combine videos by tab and filter by search
+  // Fetch titles once on startup, then cache
+  async function fetchVideoTitles(videos) {
+    for (const video of videos) {
+      if (video.title) continue;
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`);
+        if (res.ok) {
+          const data = await res.json();
+          video.title = data.title;
+        } else {
+          video.title = 'Unknown Title';
+        }
+      } catch {
+        video.title = 'Unknown Title';
+      }
+    }
+  }
+
+  // Get videos filtered by tab and search term
   async function getFilteredVideos() {
     const userVideos = loadUserVideos();
     let allVideos;
 
-    switch (currentTab) {
+    switch(currentTab) {
       case 'uploads':
         allVideos = userVideos;
         break;
@@ -392,35 +401,17 @@
         break;
     }
 
-    const searchTerm = searchInput.value.toLowerCase().trim();
+    // Fetch missing titles (only on first call)
+    await fetchVideoTitles(allVideos);
 
+    const searchTerm = searchInput.value.toLowerCase().trim();
     if (!searchTerm) return allVideos;
 
-    // Filter videos by title matching search term
-    // Since titles are fetched async, we need to fetch titles for filtering
-    // To avoid multiple fetches every time, let's cache titles
-
-    const videosWithTitles = await Promise.all(allVideos.map(async (video) => {
-      if(video.title) return video; // Already fetched
-      try {
-        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`);
-        if(res.ok) {
-          const data = await res.json();
-          video.title = data.title;
-        } else {
-          video.title = 'Unknown Title';
-        }
-      } catch {
-        video.title = 'Unknown Title';
-      }
-      return video;
-    }));
-
-    return videosWithTitles.filter(video => video.title.toLowerCase().includes(searchTerm));
+    return allVideos.filter(v => (v.title || '').toLowerCase().includes(searchTerm));
   }
 
-  // Render videos grid
-  async function renderVideos(page = 1) {
+  // Render videos grid with pagination
+  async function renderVideos(page=1) {
     const allVideos = await getFilteredVideos();
     const totalVideos = allVideos.length;
     const totalPages = Math.ceil(totalVideos / VIDEOS_PER_PAGE);
@@ -430,14 +421,13 @@
     currentPage = page;
 
     videosGrid.innerHTML = '';
-
     if(totalVideos === 0) {
-      videosGrid.innerHTML = '<p style="color:#ccc; text-align:center;">No videos to display.</p>';
+      videosGrid.innerHTML = '<p style="color:#ccc; text-align:center;">No videos found.</p>';
       pagination.innerHTML = '';
       return;
     }
 
-    const startIndex = (page -1) * VIDEOS_PER_PAGE;
+    const startIndex = (page-1)*VIDEOS_PER_PAGE;
     const endIndex = startIndex + VIDEOS_PER_PAGE;
     const videosToShow = allVideos.slice(startIndex, endIndex);
 
@@ -448,7 +438,6 @@
       const card = document.createElement('div');
       card.className = 'video-card';
 
-      // Thumbnail from YouTube standard URL
       const thumbUrl = `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`;
 
       const thumbnailDiv = document.createElement('div');
@@ -475,24 +464,27 @@
       const likeBtn = document.createElement('button');
       likeBtn.className = 'like-btn';
       likeBtn.textContent = '👍';
-      if (likes[video.id]) likeBtn.classList.add('liked');
+      if(likes[video.id]) likeBtn.classList.add('liked');
       likeBtn.title = 'Like this video';
       likeBtn.setAttribute('aria-pressed', likes[video.id] ? 'true' : 'false');
-      likeBtn.addEventListener('click', () => {
+      likeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         likes[video.id] = !likes[video.id];
         saveLikes(likes);
         likeBtn.classList.toggle('liked');
         likeBtn.setAttribute('aria-pressed', likes[video.id] ? 'true' : 'false');
+        if(currentVideoId === video.id) updateModalButtons();
       });
       buttonsDiv.appendChild(likeBtn);
 
       const favBtn = document.createElement('button');
       favBtn.className = 'fav-btn';
       favBtn.textContent = '⭐';
-      if (favorites.includes(video.id)) favBtn.classList.add('favorited');
+      if(favorites.includes(video.id)) favBtn.classList.add('favorited');
       favBtn.title = 'Add to favorites';
       favBtn.setAttribute('aria-pressed', favorites.includes(video.id) ? 'true' : 'false');
-      favBtn.addEventListener('click', () => {
+      favBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         if(favorites.includes(video.id)) {
           const idx = favorites.indexOf(video.id);
           favorites.splice(idx,1);
@@ -504,6 +496,7 @@
           favBtn.setAttribute('aria-pressed', 'true');
         }
         saveFavorites(favorites);
+        if(currentVideoId === video.id) updateModalButtons();
       });
       buttonsDiv.appendChild(favBtn);
 
@@ -516,10 +509,9 @@
     renderPagination(totalPages, page);
   }
 
-  // Pagination buttons
+  // Pagination controls
   function renderPagination(totalPages, currentPage) {
     pagination.innerHTML = '';
-
     if(totalPages <= 1) return;
 
     const prevBtn = document.createElement('button');
@@ -528,4 +520,107 @@
     prevBtn.onclick = () => renderVideos(currentPage - 1);
     pagination.appendChild(prevBtn);
 
-    let startPage = Math.max
+    // Show page numbers with current active
+    for(let i=1; i<=totalPages; i++) {
+      const pageBtn = document.createElement('button');
+      pageBtn.textContent = i;
+      pageBtn.className = i === currentPage ? 'active' : '';
+      pageBtn.onclick = () => renderVideos(i);
+      pagination.appendChild(pageBtn);
+    }
+
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => renderVideos(currentPage + 1);
+    pagination.appendChild(nextBtn);
+  }
+
+  // Modal open/close
+  function openModal(videoId) {
+    currentVideoId = videoId;
+    modalIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+    videoModal.classList.add('active');
+    videoModal.setAttribute('aria-hidden', 'false');
+    updateModalButtons();
+    modalCloseBtn.focus();
+  }
+  function closeModal() {
+    modalIframe.src = '';
+    videoModal.classList.remove('active');
+    videoModal.setAttribute('aria-hidden', 'true');
+    currentVideoId = null;
+  }
+  modalCloseBtn.addEventListener('click', closeModal);
+  videoModal.addEventListener('click', (e) => {
+    if(e.target === videoModal) closeModal();
+  });
+  window.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && videoModal.classList.contains('active')) {
+      closeModal();
+    }
+  });
+
+  // Update modal like/fav buttons states
+  function updateModalButtons() {
+    if(!currentVideoId) return;
+    const likes = loadLikes();
+    const favorites = loadFavorites();
+    modalLikeBtn.classList.toggle('liked', !!likes[currentVideoId]);
+    modalFavBtn.classList.toggle('favorited', favorites.includes(currentVideoId));
+    modalLikeBtn.setAttribute('aria-pressed', !!likes[currentVideoId] ? 'true' : 'false');
+    modalFavBtn.setAttribute('aria-pressed', favorites.includes(currentVideoId) ? 'true' : 'false');
+  }
+
+  modalLikeBtn.addEventListener('click', () => {
+    if(!currentVideoId) return;
+    const likes = loadLikes();
+    likes[currentVideoId] = !likes[currentVideoId];
+    saveLikes(likes);
+    updateModalButtons();
+    renderVideos(currentPage);
+  });
+
+  modalFavBtn.addEventListener('click', () => {
+    if(!currentVideoId) return;
+    const favorites = loadFavorites();
+    if(favorites.includes(currentVideoId)) {
+      const idx = favorites.indexOf(currentVideoId);
+      favorites.splice(idx,1);
+    } else {
+      favorites.push(currentVideoId);
+    }
+    saveFavorites(favorites);
+    updateModalButtons();
+    renderVideos(currentPage);
+  });
+
+  // Search input debounce
+  let searchTimeout = null;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      currentPage = 1;
+      renderVideos(currentPage);
+    }, 400);
+  });
+
+  // Tab buttons events
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(btn.dataset.tab === currentTab) return;
+      currentTab = btn.dataset.tab;
+      tabs.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPage = 1;
+      renderVideos(currentPage);
+    });
+  });
+
+  // On load
+  window.addEventListener('DOMContentLoaded', () => {
+    renderVideos(currentPage);
+  });
+</script>
+</body>
+</html>
