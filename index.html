@@ -3,34 +3,59 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VideoHub - Watch & Earn VVC</title>
+<title>VideoHub - Watch & Share</title>
 <style>
-  /* Reset básico */
   * {
     box-sizing: border-box;
   }
   body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #121212;
+    background: #0f0f0f;
     color: #eee;
-    cursor: url('https://cdn-icons-png.flaticon.com/512/616/616408.png'), auto; /* espada cursor */
   }
   header {
-    background: #1f1f1f;
+    background: #202020;
     padding: 15px 20px;
-    font-size: 1.5rem;
-    font-weight: bold;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     border-bottom: 2px solid #ff3c00;
   }
+  header h1 {
+    font-size: 1.6rem;
+    margin: 0;
+    color: #ff3c00;
+  }
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-bar input {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    width: 220px;
+    font-size: 1rem;
+  }
+  .search-bar button {
+    background: #ff3c00;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 8px 14px;
+  }
+
   .container {
     display: flex;
     height: calc(100vh - 60px);
   }
   nav.sidebar {
-    width: 220px;
-    background: #222;
+    width: 240px;
+    background: #181818;
     display: flex;
     flex-direction: column;
     padding: 20px;
@@ -39,10 +64,9 @@
     font-size: 1.3rem;
     margin-bottom: 20px;
     color: #ff3c00;
-    user-select: none;
   }
   nav.sidebar button.tab-btn {
-    background: #333;
+    background: #222;
     border: none;
     border-radius: 6px;
     color: #ccc;
@@ -50,13 +74,12 @@
     margin-bottom: 10px;
     cursor: pointer;
     font-weight: 600;
-    transition: background-color 0.3s ease;
     text-align: left;
+    transition: 0.3s;
   }
   nav.sidebar button.tab-btn.active {
     background: #ff3c00;
     color: #121212;
-    font-weight: bold;
   }
   nav.sidebar .upload-section {
     margin-top: 30px;
@@ -65,7 +88,6 @@
     display: block;
     margin-bottom: 6px;
     font-size: 0.9rem;
-    user-select: none;
   }
   nav.sidebar input[type="url"] {
     padding: 8px;
@@ -83,104 +105,71 @@
     color: white;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: 0.3s;
     width: 100%;
   }
   nav.sidebar button#uploadBtn:hover {
     background: #e63600;
   }
+
   main.content {
     flex-grow: 1;
     padding: 20px;
     overflow-y: auto;
-    background: #181818;
-    display: flex;
-    flex-direction: column;
+    background: #121212;
   }
+
   .videos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(320px,1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
   }
+
   .video-card {
-    background: #272727;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 0 8px #ff3c00cc;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    background: #1c1c1c;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 12px #ff3c0040;
+    transition: transform 0.2s ease;
   }
-  iframe {
-    border-radius: 8px;
+  .video-card:hover {
+    transform: scale(1.03);
+  }
+  .video-thumb {
     width: 100%;
     height: 180px;
+    object-fit: cover;
   }
-  button.btn-watch-enabled {
-    margin-top: 12px;
-    padding: 10px 14px;
-    font-weight: bold;
-    background-color: #ff3c00;
-    border: none;
-    border-radius: 6px;
+  .video-info {
+    padding: 10px;
+  }
+  .video-info h3 {
+    font-size: 1rem;
     color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    margin: 0;
+    line-height: 1.4;
   }
-  button.btn-watch-enabled:hover {
-    background-color: #e63600;
-  }
-  button.btn-watch-disabled,
-  button.btn-watch-done {
-    margin-top: 12px;
-    padding: 10px 14px;
-    font-weight: bold;
-    background-color: #555;
-    border: none;
-    border-radius: 6px;
-    color: #ccc;
-    cursor: not-allowed;
-  }
-  /* Scrollbar styling */
-  main.content::-webkit-scrollbar {
-    width: 10px;
-  }
-  main.content::-webkit-scrollbar-track {
-    background: #222;
-  }
-  main.content::-webkit-scrollbar-thumb {
-    background-color: #ff3c00;
-    border-radius: 10px;
-  }
-  /* Pagination */
+
   .pagination {
     margin-top: 20px;
     display: flex;
     justify-content: center;
     gap: 8px;
-    user-select: none;
   }
   .pagination button {
-    background: #333;
+    background: #222;
     border: none;
     color: #ccc;
     padding: 8px 14px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    transition: background-color 0.3s ease;
-  }
-  .pagination button:hover:not(.active) {
-    background: #ff3c00;
-    color: #121212;
   }
   .pagination button.active {
     background: #ff3c00;
     color: #121212;
-    cursor: default;
   }
 
-  /* Responsive */
   @media (max-width: 768px) {
     .container {
       flex-direction: column;
@@ -190,35 +179,31 @@
       flex-direction: row;
       overflow-x: auto;
       padding: 10px;
-      gap: 10px;
-    }
-    nav.sidebar > * {
-      margin-right: 20px;
-      flex-shrink: 0;
-    }
-    main.content {
-      height: auto;
     }
     .videos-grid {
-      grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     }
   }
 </style>
 </head>
 <body>
-<header>VideoHub 🎥</header>
+<header>
+  <h1>🎬 VideoHub</h1>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search videos..." />
+    <button id="searchBtn">Search</button>
+  </div>
+</header>
 <div class="container">
   <nav class="sidebar">
     <h2>Categories</h2>
-    <button class="tab-btn active" data-tab="all">Todos</button>
-    <button class="tab-btn" data-tab="uploads">Uploads</button>
-    <button class="tab-btn" data-tab="favorites">Favoritos</button>
-    <button class="tab-btn" data-tab="extras">Extras</button>
+    <button class="tab-btn active" data-tab="all">All</button>
+    <button class="tab-btn" data-tab="uploads">My Uploads</button>
 
     <div class="upload-section">
-      <label for="videoURL">Upload YouTube Video ⬆️</label>
+      <label for="videoURL">Add YouTube Video ⬆️</label>
       <input type="url" id="videoURL" placeholder="https://www.youtube.com/watch?v=..." />
-      <button id="uploadBtn">Upload</button>
+      <button id="uploadBtn">Add Video</button>
     </div>
   </nav>
   <main class="content">
@@ -228,30 +213,34 @@
 </div>
 
 <script>
-  // ======== Variables ========
   const videosGrid = document.getElementById('videosGrid');
   const videoURLInput = document.getElementById('videoURL');
   const uploadBtn = document.getElementById('uploadBtn');
   const pagination = document.getElementById('pagination');
-  const tabs = document.querySelectorAll('nav.sidebar button.tab-btn');
+  const tabs = document.querySelectorAll('.tab-btn');
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
 
-  const VIDEOS_PER_PAGE = 6;
+  const VIDEOS_PER_PAGE = 12;
   let currentPage = 1;
   let currentTab = 'all';
+  let searchTerm = '';
 
-  // Default videos (sem títulos visíveis)
   const defaultVideos = [
     { id: "dQw4w9WgXcQ" },
     { id: "noLL5xy0UnU" },
-    { id: "6zp3mt5Dd2c" },
     { id: "MsXdUtlDVhk" },
-    { id: "tAGnKpE4NCI" }, // Adicionei mais alguns
+    { id: "tAGnKpE4NCI" },
     { id: "3JZ_D3ELwOQ" },
     { id: "Zi_XLOBDo_Y" },
-    { id: "V-_O7nl0Ii0" }
+    { id: "V-_O7nl0Ii0" },
+    { id: "kXYiU_JCYtU" },
+    { id: "eVTXPUF4Oz4" },
+    { id: "fJ9rUzIMcZQ" },
+    { id: "hTWKbfoikeg" },
+    { id: "2vjPBrBU-TM" }
   ];
 
-  // Funções para salvar e carregar vídeos do usuário
   function loadUserVideos() {
     return JSON.parse(localStorage.getItem('userVideos') || '[]');
   }
@@ -259,145 +248,87 @@
     localStorage.setItem('userVideos', JSON.stringify(videos));
   }
 
-  // Combine todos os vídeos de acordo com a aba selecionada
-  function getFilteredVideos() {
-    const userVideos = loadUserVideos();
-
-    switch (currentTab) {
-      case 'uploads':
-        return userVideos;
-      case 'favorites':
-        // Implementar se quiser favoritar videos futuramente
-        return [];
-      case 'extras':
-        // Você pode adicionar vídeos extras aqui ou outro conteúdo
-        return [];
-      case 'all':
-      default:
-        return [...defaultVideos, ...userVideos];
-    }
+  async function fetchVideoData(video) {
+    const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`);
+    if (!res.ok) return null;
+    return await res.json();
   }
 
-  // Renderiza vídeos sem títulos
-  function renderVideos(page = 1) {
-    const allVideos = getFilteredVideos();
-    const totalVideos = allVideos.length;
-    const totalPages = Math.ceil(totalVideos / VIDEOS_PER_PAGE);
+  async function buildVideoCard(video) {
+    const data = await fetchVideoData(video);
+    if (!data) return null;
 
-    if(page > totalPages) page = totalPages;
-    if(page < 1) page = 1;
-    currentPage = page;
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.innerHTML = `
+      <img class="video-thumb" src="https://img.youtube.com/vi/${video.id}/hqdefault.jpg" alt="${data.title}">
+      <div class="video-info">
+        <h3>${data.title}</h3>
+      </div>
+    `;
+    card.onclick = () => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank');
+    return card;
+  }
+
+  function getFilteredVideos() {
+    let videos = [...defaultVideos, ...loadUserVideos()];
+    if (currentTab === 'uploads') {
+      videos = loadUserVideos();
+    }
+    if (searchTerm) {
+      videos = videos.filter(v => v.title && v.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+    return videos;
+  }
+
+  async function renderVideos(page = 1) {
+    const videos = getFilteredVideos();
+    const totalPages = Math.ceil(videos.length / VIDEOS_PER_PAGE);
+    currentPage = Math.min(page, totalPages);
 
     videosGrid.innerHTML = '';
-
-    if(totalVideos === 0) {
-      videosGrid.innerHTML = '<p style="color:#ccc; text-align:center;">Nenhum vídeo para mostrar.</p>';
-      pagination.innerHTML = '';
-      return;
-    }
-
-    const startIndex = (page -1) * VIDEOS_PER_PAGE;
+    const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
     const endIndex = startIndex + VIDEOS_PER_PAGE;
-    const videosToShow = allVideos.slice(startIndex, endIndex);
+    const videosToShow = videos.slice(startIndex, endIndex);
 
-    videosToShow.forEach(video => {
-      const card = document.createElement('div');
-      card.className = 'video-card';
-
-      const iframe = document.createElement('iframe');
-      iframe.width = "320";
-      iframe.height = "180";
-      iframe.src = `https://www.youtube.com/embed/${video.id}`;
-      iframe.frameBorder = "0";
-      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-      iframe.allowFullscreen = true;
-      card.appendChild(iframe);
-
-      videosGrid.appendChild(card);
-    });
-
-    renderPagination(totalPages, page);
+    for (const video of videosToShow) {
+      const card = await buildVideoCard(video);
+      if (card) videosGrid.appendChild(card);
+    }
+    renderPagination(totalPages);
   }
 
-  // Renderiza botões de paginação
-  function renderPagination(totalPages, currentPage) {
+  function renderPagination(totalPages) {
     pagination.innerHTML = '';
+    if (totalPages <= 1) return;
 
-    if(totalPages <= 1) return;
-
-    // Botão anterior
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = 'Anterior';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => renderVideos(currentPage - 1);
-    pagination.appendChild(prevBtn);
-
-    // Botões numerados (limite 5 para simplicidade)
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
-    if(endPage - startPage < 4) {
-      startPage = Math.max(1, endPage - 4);
-    }
-
-    for(let i = startPage; i <= endPage; i++) {
+    for (let i = 1; i <= totalPages; i++) {
       const btn = document.createElement('button');
       btn.textContent = i;
       btn.className = i === currentPage ? 'active' : '';
       btn.onclick = () => renderVideos(i);
       pagination.appendChild(btn);
     }
-
-    // Botão próximo
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Próximo';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => renderVideos(currentPage + 1);
-    pagination.appendChild(nextBtn);
   }
 
-  // Validação simplificada do YouTube URL
   function extractYouTubeID(url) {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
   }
 
-  // Upload do vídeo do usuário
-  async function addUserVideo(video) {
-    try {
-      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`);
-      if(!res.ok) {
-        alert("Vídeo não encontrado ou indisponível.");
-        return;
-      }
-    } catch(e) {
-      alert("Erro ao verificar o vídeo.");
-      return;
-    }
-
-    const userVideos = loadUserVideos();
-
-    // Evitar duplicatas
-    if(userVideos.some(v => v.id === video.id) || defaultVideos.some(v => v.id === video.id)) {
-      alert("Este vídeo já está na lista.");
-      return;
-    }
-
-    userVideos.push(video);
-    saveUserVideos(userVideos);
-    renderVideos(currentPage);
-  }
-
-  // Event Listeners
-  uploadBtn.addEventListener('click', () => {
+  uploadBtn.addEventListener('click', async () => {
     const url = videoURLInput.value.trim();
     const id = extractYouTubeID(url);
-    if(!id) {
-      alert("Por favor, insira uma URL válida do YouTube!");
-      return;
+    if (!id) return alert('Please enter a valid YouTube URL!');
+    const userVideos = loadUserVideos();
+    if (userVideos.some(v => v.id === id) || defaultVideos.some(v => v.id === id)) {
+      return alert('This video is already in the list.');
     }
-    addUserVideo({id});
+    userVideos.push({ id });
+    saveUserVideos(userVideos);
     videoURLInput.value = '';
+    renderVideos();
   });
 
   tabs.forEach(tab => {
@@ -405,14 +336,16 @@
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentTab = tab.dataset.tab;
-      currentPage = 1;
-      renderVideos(currentPage);
+      renderVideos(1);
     });
   });
 
-  // Inicialização
-  renderVideos();
+  searchBtn.addEventListener('click', () => {
+    searchTerm = searchInput.value.trim();
+    renderVideos(1);
+  });
 
+  renderVideos();
 </script>
 </body>
 </html>
