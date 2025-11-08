@@ -3,462 +3,452 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VideoHub 3.1 - YouTube Titles Exact</title>
+<title>VideoHub - Watch & Enjoy</title>
 <style>
+  /* Basic Reset */
+  * {
+    box-sizing: border-box;
+  }
   body {
-    margin: 0; background: #121212; color: #eee;
+    margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden;
+    background: #121212;
+    color: #eee;
+    cursor: default;
   }
-  a, button {
-    font-family: inherit;
+  header {
+    background: #1f1f1f;
+    padding: 15px 20px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 3px solid #ff3c00;
   }
-  button {
-    cursor: pointer;
+  .container {
+    display: flex;
+    height: calc(100vh - 70px);
   }
-  .app {
-    display: flex; height: 100vh; width: 100vw;
-  }
-  aside.sidebar {
-    background: #181818;
-    width: 250px;
+  nav.sidebar {
+    width: 240px;
+    background: #222;
     display: flex;
     flex-direction: column;
-    border-right: 2px solid #ff3c00;
-    overflow-y: auto;
     padding: 20px;
+    gap: 15px;
+  }
+  nav.sidebar h2 {
+    font-size: 1.4rem;
+    color: #ff3c00;
+    user-select: none;
+    margin-bottom: 10px;
+  }
+  nav.sidebar button.tab-btn {
+    background: #333;
+    border: none;
+    border-radius: 6px;
+    color: #ccc;
+    padding: 12px 10px;
+    cursor: pointer;
+    font-weight: 600;
+    text-align: left;
+    transition: background-color 0.3s ease;
+  }
+  nav.sidebar button.tab-btn.active,
+  nav.sidebar button.tab-btn:hover {
+    background: #ff3c00;
+    color: #121212;
+    font-weight: bold;
+  }
+  nav.sidebar .search-section {
+    margin-top: 20px;
+  }
+  nav.sidebar label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 1rem;
+  }
+  nav.sidebar input[type="search"] {
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1rem;
+    width: 100%;
+    background: #333;
+    color: #eee;
   }
   main.content {
     flex-grow: 1;
-    background: #1e1e1e;
+    padding: 20px;
+    overflow-y: auto;
+    background: #181818;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-  }
-  header.header {
-    height: 60px;
-    background: #222;
-    color: #ff3c00;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    font-weight: 700;
-    font-size: 1.5rem;
-    border-bottom: 2px solid #ff3c00;
-    justify-content: space-between;
-  }
-  .sidebar h2 {
-    margin: 0 0 20px 0;
-    font-weight: 700;
-    color: #ff3c00;
-    user-select: none;
-    font-size: 1.4rem;
-    text-align: center;
-  }
-  nav.menu {
-    flex-grow: 1;
-  }
-  nav.menu button {
-    width: 100%;
-    background: transparent;
-    border: none;
-    padding: 12px 15px;
-    color: #ccc;
-    text-align: left;
-    font-weight: 600;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    transition: background-color 0.3s ease;
-  }
-  nav.menu button:hover {
-    background-color: #ff3c00;
-    color: #121212;
-  }
-  nav.menu button.active {
-    background-color: #ff3c00;
-    color: #121212;
-    font-weight: 900;
-  }
-  .search-box {
-    margin-bottom: 20px;
-  }
-  .search-box input[type="search"] {
-    width: 100%;
-    padding: 10px 15px;
-    border-radius: 10px;
-    border: none;
-    font-size: 1rem;
-    outline: none;
-    transition: background-color 0.3s ease;
-  }
-  .search-box input[type="search"]:focus {
-    background-color: #333;
-    color: #fff;
-  }
-  .videos-container {
-    padding: 20px;
-    flex-grow: 1;
-    overflow-y: auto;
   }
   .videos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill,minmax(320px,1fr));
-    gap: 18px;
+    gap: 20px;
   }
   .video-card {
     background: #272727;
-    border-radius: 12px;
-    box-shadow: 0 0 10px #ff3c00cc;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 0 8px #ff3c00cc;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-  }
-  .video-card:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 14px #ff3c00ee;
-  }
-  .video-thumb {
-    position: relative;
-    width: 100%;
-    height: 180px;
+    user-select: none;
   }
   .video-thumb iframe {
+    border-radius: 8px;
     width: 100%;
     height: 180px;
-    border: none;
   }
   .video-info {
-    padding: 10px 15px;
-    color: #eee;
-    flex-grow: 1;
+    margin-top: 10px;
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
   }
   .video-title {
-    font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: 8px;
-    user-select: text;
-  }
-  .video-actions {
-    margin-top: auto;
-    display: flex;
-    gap: 12px;
-  }
-  button.action-btn {
-    background: #ff3c00;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: #121212;
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 1rem;
     flex-grow: 1;
-    transition: background-color 0.3s ease;
+    margin-right: 10px;
+    color: #fff;
   }
-  button.action-btn:hover {
-    background-color: #e63600;
-  }
-  button.like-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: transparent;
+  .video-actions button {
+    background: #333;
     border: none;
-    color: #ff3c00;
-    font-weight: 700;
+    border-radius: 6px;
+    color: #ccc;
+    padding: 6px 12px;
     cursor: pointer;
-    user-select: none;
-    transition: color 0.3s ease;
+    font-weight: 600;
+    margin-left: 6px;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
-  button.like-btn.liked {
-    color: #ff6161;
+  .video-actions button:hover {
+    background: #ff3c00;
+    color: #121212;
   }
-  button.like-btn:hover {
-    color: #ff7f7f;
+  .video-actions button.liked {
+    background: #ff3c00;
+    color: #121212;
   }
+  /* Scrollbar styling */
+  main.content::-webkit-scrollbar {
+    width: 10px;
+  }
+  main.content::-webkit-scrollbar-track {
+    background: #222;
+  }
+  main.content::-webkit-scrollbar-thumb {
+    background-color: #ff3c00;
+    border-radius: 10px;
+  }
+  /* Responsive */
   @media (max-width: 768px) {
-    .app {
+    .container {
       flex-direction: column;
     }
-    aside.sidebar {
+    nav.sidebar {
       width: 100%;
-      height: auto;
-      border-right: none;
-      border-bottom: 2px solid #ff3c00;
-      padding: 10px;
       flex-direction: row;
       overflow-x: auto;
+      padding: 10px;
       gap: 10px;
     }
-    nav.menu button {
+    nav.sidebar > * {
+      margin-right: 20px;
       flex-shrink: 0;
-      padding: 10px 15px;
-      font-size: 0.9rem;
     }
     main.content {
       height: auto;
-      flex-grow: 1;
-      overflow-y: visible;
     }
     .videos-grid {
       grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
-      gap: 12px;
     }
   }
 </style>
 </head>
 <body>
+<header>VideoHub 🎥</header>
+<div class="container">
+  <nav class="sidebar">
+    <h2>Categories</h2>
+    <button class="tab-btn active" data-tab="all">All</button>
+    <button class="tab-btn" data-tab="uploads">Uploads</button>
+    <button class="tab-btn" data-tab="favorites">Favorites</button>
+    <button class="tab-btn" data-tab="extras">Extras</button>
 
-<div class="app">
-
-  <aside class="sidebar" role="navigation" aria-label="Main menu">
-    <h2>VideoHub</h2>
-
-    <div class="search-box">
-      <input type="search" id="searchInput" placeholder="Search videos..." autocomplete="off" />
+    <div class="search-section">
+      <label for="searchInput">Search Videos</label>
+      <input type="search" id="searchInput" placeholder="Type to search..." autocomplete="off" />
     </div>
-
-    <nav class="menu" aria-label="Categories">
-      <button class="menu-btn active" data-tab="home" aria-current="page">Home</button>
-      <button class="menu-btn" data-tab="trending">Trending</button>
-      <button class="menu-btn" data-tab="music">Music</button>
-      <button class="menu-btn" data-tab="gaming">Gaming</button>
-      <button class="menu-btn" data-tab="education">Education</button>
-      <button class="menu-btn" data-tab="entertainment">Entertainment</button>
-      <button class="menu-btn" data-tab="favorites">Favorites</button>
-      <button class="menu-btn" data-tab="uploads">My Uploads</button>
-    </nav>
-  </aside>
-
-  <main class="content" role="main" aria-live="polite">
-    <header class="header">
-      VideoHub 🎥
-      <button id="addVideoBtn" title="Add YouTube video by URL" aria-label="Add YouTube video by URL">➕</button>
-    </header>
-    <section class="videos-container" id="videosContainer">
-      <div class="videos-grid" id="videosGrid">
-        <!-- Videos will load here -->
-      </div>
-    </section>
+  </nav>
+  <main class="content">
+    <div class="videos-grid" id="videosGrid"></div>
+    <div class="pagination" id="pagination" style="margin-top: 20px; display:flex; justify-content:center; gap:8px; user-select:none;"></div>
   </main>
-
 </div>
 
 <script>
-  const tabsButtons = document.querySelectorAll('.menu-btn');
+  // Variables
   const videosGrid = document.getElementById('videosGrid');
+  const pagination = document.getElementById('pagination');
+  const tabs = document.querySelectorAll('nav.sidebar button.tab-btn');
   const searchInput = document.getElementById('searchInput');
-  const addVideoBtn = document.getElementById('addVideoBtn');
 
-  const LS_KEYS = {
-    USER_VIDEOS: 'vh_userVideos',
-    FAVORITES: 'vh_favorites',
-    LIKES: 'vh_likes',
-  };
-
-  // Only store video IDs for user videos, titles fetched from API dynamically
-  let userVideos = [];
-  let favorites = [];
-  let likes = {};
-  let currentTab = 'home';
+  const VIDEOS_PER_PAGE = 8; // More videos per page as requested
+  let currentPage = 1;
+  let currentTab = 'all';
   let searchTerm = '';
 
-  // Default video IDs + categories, titles will be fetched dynamically
+  // Default videos - only IDs, titles will be fetched from YouTube
   const defaultVideos = [
-    { id: "dQw4w9WgXcQ", category: "music" },
-    { id: "noLL5xy0UnU", category: "gaming" },
-    { id: "6zp3mt5Dd2c", category: "education" },
-    { id: "MsXdUtlDVhk", category: "entertainment" },
-    { id: "tAGnKpE4NCI", category: "music" },
-    { id: "3JZ_D3ELwOQ", category: "music" },
-    { id: "Zi_XLOBDo_Y", category: "gaming" },
-    { id: "V-_O7nl0Ii0", category: "entertainment" }
+    { id: "dQw4w9WgXcQ" },
+    { id: "noLL5xy0UnU" },
+    { id: "6zp3mt5Dd2c" },
+    { id: "MsXdUtlDVhk" },
+    { id: "tAGnKpE4NCI" },
+    { id: "3JZ_D3ELwOQ" },
+    { id: "Zi_XLOBDo_Y" },
+    { id: "V-_O7nl0Ii0" }
   ];
 
-  // Fetch titles for all videos (default + user)
-  async function fetchTitles(videos) {
-    const videosWithTitles = await Promise.all(videos.map(async v => {
-      try {
-        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${v.id}&format=json`);
-        if (!res.ok) throw new Error('Not found');
-        const data = await res.json();
-        return { ...v, title: data.title };
-      } catch {
-        return { ...v, title: 'Unknown Title' };
-      }
-    }));
-    return videosWithTitles;
+  // Load user videos, favorites and likes from localStorage
+  function loadUserVideos() {
+    return JSON.parse(localStorage.getItem('userVideos') || '[]');
   }
+  function saveUserVideos(videos) {
+    localStorage.setItem('userVideos', JSON.stringify(videos));
+  }
+  let userVideos = loadUserVideos();
 
-  function loadData() {
-    userVideos = JSON.parse(localStorage.getItem(LS_KEYS.USER_VIDEOS)) || [];
-    favorites = JSON.parse(localStorage.getItem(LS_KEYS.FAVORITES)) || [];
-    likes = JSON.parse(localStorage.getItem(LS_KEYS.LIKES)) || {};
-  }
-  function saveUserVideos() {
-    localStorage.setItem(LS_KEYS.USER_VIDEOS, JSON.stringify(userVideos));
+  function loadFavorites() {
+    return JSON.parse(localStorage.getItem('favorites') || '[]');
   }
   function saveFavorites() {
-    localStorage.setItem(LS_KEYS.FAVORITES, JSON.stringify(favorites));
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }
+  let favorites = loadFavorites();
+
+  function loadLikes() {
+    return JSON.parse(localStorage.getItem('likes') || '{}');
   }
   function saveLikes() {
-    localStorage.setItem(LS_KEYS.LIKES, JSON.stringify(likes));
+    localStorage.setItem('likes', JSON.stringify(likes));
   }
+  let likes = loadLikes();
 
-  function renderVideos() {
-    // Combine all videos
-    let allVideos = [...defaultVideos, ...userVideos];
-
-    // Filter by tab
-    let videosToShow = [];
-    if (currentTab === 'home') {
-      videosToShow = allVideos;
-    } else if (currentTab === 'favorites') {
-      videosToShow = allVideos.filter(v => favorites.includes(v.id));
-    } else if (currentTab === 'uploads') {
-      videosToShow = userVideos;
-    } else {
-      videosToShow = allVideos.filter(v => v.category === currentTab);
-    }
-
-    // Filter by search term
-    if (searchTerm.trim() !== '') {
-      videosToShow = videosToShow.filter(v => v.title && v.title.toLowerCase().includes(searchTerm.toLowerCase()));
-    }
-
-    if (videosToShow.length === 0) {
-      videosGrid.innerHTML = `<p style="color:#ff3c00; font-weight:bold; grid-column:1/-1; text-align:center;">No videos found.</p>`;
-      return;
-    }
-
-    // Fetch titles for the filtered videos
-    fetchTitles(videosToShow).then(videosWithTitles => {
-      videosGrid.innerHTML = '';
-      videosWithTitles.forEach(video => {
-        const card = document.createElement('div');
-        card.className = 'video-card';
-
-        const thumb = document.createElement('div');
-        thumb.className = 'video-thumb';
-        thumb.innerHTML = `
-          <iframe 
-            src="https://www.youtube.com/embed/${video.id}" 
-            title="${video.title}"
-            allowfullscreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          ></iframe>
-        `;
-
-        const info = document.createElement('div');
-        info.className = 'video-info';
-
-        const title = document.createElement('div');
-        title.className = 'video-title';
-        title.textContent = video.title || 'Unknown Title';
-
-        const actions = document.createElement('div');
-        actions.className = 'video-actions';
-
-        const likeBtn = document.createElement('button');
-        likeBtn.className = 'like-btn';
-        if (likes[video.id]) {
-          likeBtn.classList.add('liked');
-        }
-        likeBtn.innerHTML = `&#10084; ${likes[video.id] ? 1 : 0}`;
-        likeBtn.title = 'Like';
-        likeBtn.addEventListener('click', () => {
-          if (likes[video.id]) {
-            delete likes[video.id];
-          } else {
-            likes[video.id] = 1;
-          }
-          saveLikes();
-          renderVideos();
-        });
-
-        const favBtn = document.createElement('button');
-        favBtn.className = 'action-btn';
-        if (favorites.includes(video.id)) {
-          favBtn.textContent = 'Remove Favorite';
-        } else {
-          favBtn.textContent = 'Add Favorite';
-        }
-        favBtn.addEventListener('click', () => {
-          if (favorites.includes(video.id)) {
-            favorites = favorites.filter(id => id !== video.id);
-          } else {
-            favorites.push(video.id);
-          }
-          saveFavorites();
-          renderVideos();
-        });
-
-        actions.appendChild(likeBtn);
-        actions.appendChild(favBtn);
-
-        info.appendChild(title);
-        info.appendChild(actions);
-
-        card.appendChild(thumb);
-        card.appendChild(info);
-
-        videosGrid.appendChild(card);
-      });
-    });
-  }
-
-  async function addVideoPrompt() {
-    const url = prompt('Enter YouTube video URL:');
-    if (!url) return;
-    const idMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-    if (!idMatch) {
-      alert('Invalid YouTube URL.');
-      return;
-    }
-    const videoId = idMatch[1];
-    if (userVideos.find(v => v.id === videoId) || defaultVideos.find(v => v.id === videoId)) {
-      alert('Video already exists.');
-      return;
-    }
-    // Test if video is valid (fetch title)
+  // Fetch title from YouTube oEmbed API
+  async function fetchTitle(videoId) {
     try {
       const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
       if (!res.ok) throw new Error('Video not found');
       const data = await res.json();
-      userVideos.push({ id: videoId, category: 'uploads' });
-      saveUserVideos();
-      alert(`Video "${data.title}" added!`);
-      if (currentTab === 'uploads' || currentTab === 'home') renderVideos();
+      return data.title;
     } catch {
-      alert('Could not fetch video info. Please check the URL.');
+      return "Unknown Title";
     }
   }
 
-  tabsButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabsButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentTab = btn.dataset.tab;
+  // Fetch titles for all videos (cache to avoid multiple calls)
+  const titleCache = {};
+  async function fetchTitles(videos) {
+    const promises = videos.map(async (v) => {
+      if (!titleCache[v.id]) {
+        titleCache[v.id] = await fetchTitle(v.id);
+      }
+      return { id: v.id, title: titleCache[v.id], category: v.category || 'uploads' };
+    });
+    return Promise.all(promises);
+  }
+
+  // Filtering and rendering videos
+  async function renderVideos(page = 1) {
+    userVideos = loadUserVideos();
+    favorites = loadFavorites();
+    likes = loadLikes();
+
+    currentPage = page;
+
+    // Combine videos based on tab
+    let combinedVideos = [];
+    switch (currentTab) {
+      case 'uploads':
+        combinedVideos = userVideos;
+        break;
+      case 'favorites':
+        combinedVideos = [...defaultVideos, ...userVideos].filter(v => favorites.includes(v.id));
+        break;
+      case 'extras':
+        combinedVideos = []; // You can add extras here
+        break;
+      case 'all':
+      default:
+        combinedVideos = [...defaultVideos, ...userVideos];
+        break;
+    }
+
+    // Fetch titles for combined videos
+    const videosWithTitles = await fetchTitles(combinedVideos);
+
+    // Filter by search term (partial match)
+    const filteredVideos = videosWithTitles.filter(v =>
+      v.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalVideos = filteredVideos.length;
+    const totalPages = Math.ceil(totalVideos / VIDEOS_PER_PAGE);
+
+    if (currentPage > totalPages) currentPage = totalPages || 1;
+    if (currentPage < 1) currentPage = 1;
+
+    videosGrid.innerHTML = '';
+
+    if (totalVideos === 0) {
+      videosGrid.innerHTML = `<p style="color:#ff3c00; font-weight:bold; grid-column:1/-1; text-align:center;">No videos found.</p>`;
+      pagination.innerHTML = '';
+      return;
+    }
+
+    const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
+    const endIndex = startIndex + VIDEOS_PER_PAGE;
+    const videosToShow = filteredVideos.slice(startIndex, endIndex);
+
+    videosToShow.forEach(video => {
+      const card = document.createElement('div');
+      card.className = 'video-card';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'video-thumb';
+      thumb.innerHTML = `
+        <iframe 
+          src="https://www.youtube.com/embed/${video.id}" 
+          title="${video.title}"
+          allowfullscreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          loading="lazy"
+        ></iframe>
+      `;
+
+      const info = document.createElement('div');
+      info.className = 'video-info';
+
+      const title = document.createElement('div');
+      title.className = 'video-title';
+      title.textContent = video.title;
+
+      const actions = document.createElement('div');
+      actions.className = 'video-actions';
+
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'like-btn';
+      if (likes[video.id]) likeBtn.classList.add('liked');
+      likeBtn.innerHTML = `&#10084; ${likes[video.id] ? 1 : 0}`;
+      likeBtn.title = 'Like';
+      likeBtn.addEventListener('click', () => {
+        if (likes[video.id]) {
+          delete likes[video.id];
+        } else {
+          likes[video.id] = 1;
+        }
+        saveLikes();
+        renderVideos(currentPage);
+      });
+
+      const favBtn = document.createElement('button');
+      if (favorites.includes(video.id)) {
+        favBtn.textContent = 'Remove Favorite';
+      } else {
+        favBtn.textContent = 'Add Favorite';
+      }
+      favBtn.title = 'Toggle Favorite';
+      favBtn.addEventListener('click', () => {
+        if (favorites.includes(video.id)) {
+          favorites = favorites.filter(id => id !== video.id);
+        } else {
+          favorites.push(video.id);
+        }
+        saveFavorites();
+        renderVideos(currentPage);
+      });
+
+      actions.appendChild(likeBtn);
+      actions.appendChild(favBtn);
+
+      info.appendChild(title);
+      info.appendChild(actions);
+
+      card.appendChild(thumb);
+      card.appendChild(info);
+
+      videosGrid.appendChild(card);
+    });
+
+    renderPagination(totalPages, currentPage);
+  }
+
+  // Pagination buttons
+  function renderPagination(totalPages, currentPage) {
+    pagination.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = 'Previous';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => renderVideos(currentPage - 1);
+    pagination.appendChild(prevBtn);
+
+    // Show up to 5 page numbers
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    if (endPage - startPage < 4) {
+      startPage = Math.max(1, endPage - 4);
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      const btn = document.createElement('button');
+      btn.textContent = i;
+      btn.className = i === currentPage ? 'active' : '';
+      btn.onclick = () => renderVideos(i);
+      pagination.appendChild(btn);
+    }
+
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => renderVideos(currentPage + 1);
+    pagination.appendChild(nextBtn);
+  }
+
+  // Search input handler (with debounce)
+  let debounceTimeout;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(() => {
+      searchTerm = searchInput.value.trim();
+      currentPage = 1;
+      renderVideos();
+    }, 300);
+  });
+
+  // Tab click handlers
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentTab = tab.dataset.tab;
+      currentPage = 1;
+      searchTerm = '';
+      searchInput.value = '';
       renderVideos();
     });
   });
 
-  searchInput.addEventListener('input', e => {
-    searchTerm = e.target.value;
-    renderVideos();
-  });
-
-  addVideoBtn.addEventListener('click', addVideoPrompt);
-
-  function init() {
-    loadData();
-    renderVideos();
-  }
-  init();
-
+  // Initial render
+  renderVideos();
 </script>
-
 </body>
 </html>
