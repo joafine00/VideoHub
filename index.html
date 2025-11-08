@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VideoHub 3.0 - Your Personal YouTube Dashboard</title>
+<title>VideoHub 3.1 - YouTube Titles Exact</title>
 <style>
   body {
     margin: 0; background: #121212; color: #eee;
@@ -45,6 +45,7 @@
     font-weight: 700;
     font-size: 1.5rem;
     border-bottom: 2px solid #ff3c00;
+    justify-content: space-between;
   }
   .sidebar h2 {
     margin: 0 0 20px 0;
@@ -177,41 +178,6 @@
   button.like-btn:hover {
     color: #ff7f7f;
   }
-  .upload-section {
-    margin: 0 20px 20px 20px;
-    padding: 15px;
-    background: #222;
-    border-radius: 12px;
-    box-shadow: 0 0 10px #ff3c00bb;
-  }
-  .upload-section label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 700;
-  }
-  .upload-section input[type="url"] {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
-    outline: none;
-  }
-  .upload-section button {
-    margin-top: 10px;
-    width: 100%;
-    background: #ff3c00;
-    border: none;
-    border-radius: 10px;
-    color: #121212;
-    font-weight: 700;
-    padding: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  .upload-section button:hover {
-    background-color: #e63600;
-  }
   @media (max-width: 768px) {
     .app {
       flex-direction: column;
@@ -247,15 +213,15 @@
 
 <div class="app">
 
-  <aside class="sidebar">
+  <aside class="sidebar" role="navigation" aria-label="Main menu">
     <h2>VideoHub</h2>
 
     <div class="search-box">
       <input type="search" id="searchInput" placeholder="Search videos..." autocomplete="off" />
     </div>
 
-    <nav class="menu" aria-label="Main navigation">
-      <button class="menu-btn active" data-tab="home">Home</button>
+    <nav class="menu" aria-label="Categories">
+      <button class="menu-btn active" data-tab="home" aria-current="page">Home</button>
       <button class="menu-btn" data-tab="trending">Trending</button>
       <button class="menu-btn" data-tab="music">Music</button>
       <button class="menu-btn" data-tab="gaming">Gaming</button>
@@ -266,63 +232,71 @@
     </nav>
   </aside>
 
-  <main class="content" role="main">
-    <header class="header">VideoHub 🎥</header>
+  <main class="content" role="main" aria-live="polite">
+    <header class="header">
+      VideoHub 🎥
+      <button id="addVideoBtn" title="Add YouTube video by URL" aria-label="Add YouTube video by URL">➕</button>
+    </header>
     <section class="videos-container" id="videosContainer">
       <div class="videos-grid" id="videosGrid">
         <!-- Videos will load here -->
       </div>
-    </section>
-    <section class="upload-section" aria-label="Upload new video">
-      <label for="videoURLInput">Add YouTube Video URL</label>
-      <input type="url" id="videoURLInput" placeholder="https://www.youtube.com/watch?v=..." />
-      <button id="uploadVideoBtn">Add Video</button>
     </section>
   </main>
 
 </div>
 
 <script>
-  // ===== Constants =====
   const tabsButtons = document.querySelectorAll('.menu-btn');
   const videosGrid = document.getElementById('videosGrid');
   const searchInput = document.getElementById('searchInput');
-  const videoURLInput = document.getElementById('videoURLInput');
-  const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+  const addVideoBtn = document.getElementById('addVideoBtn');
 
-  // LocalStorage keys
   const LS_KEYS = {
     USER_VIDEOS: 'vh_userVideos',
     FAVORITES: 'vh_favorites',
     LIKES: 'vh_likes',
   };
 
-  // Default videos dataset
-  const defaultVideos = [
-    { id: "dQw4w9WgXcQ", category: "music", title: "Rick Astley - Never Gonna Give You Up" },
-    { id: "noLL5xy0UnU", category: "gaming", title: "Minecraft Hardcore Mode" },
-    { id: "6zp3mt5Dd2c", category: "education", title: "Learn JavaScript in 10 Minutes" },
-    { id: "MsXdUtlDVhk", category: "entertainment", title: "Funny Cats Compilation" },
-    { id: "tAGnKpE4NCI", category: "music", title: "Ed Sheeran - Shape of You" },
-    { id: "3JZ_D3ELwOQ", category: "music", title: "Mark Ronson - Uptown Funk" },
-    { id: "Zi_XLOBDo_Y", category: "gaming", title: "Top 10 Fortnite Plays" },
-    { id: "V-_O7nl0Ii0", category: "entertainment", title: "Best Movie Trailers 2023" }
-  ];
-
-  // Data holders
+  // Only store video IDs for user videos, titles fetched from API dynamically
   let userVideos = [];
   let favorites = [];
   let likes = {};
   let currentTab = 'home';
   let searchTerm = '';
 
-  // Load localStorage data
+  // Default video IDs + categories, titles will be fetched dynamically
+  const defaultVideos = [
+    { id: "dQw4w9WgXcQ", category: "music" },
+    { id: "noLL5xy0UnU", category: "gaming" },
+    { id: "6zp3mt5Dd2c", category: "education" },
+    { id: "MsXdUtlDVhk", category: "entertainment" },
+    { id: "tAGnKpE4NCI", category: "music" },
+    { id: "3JZ_D3ELwOQ", category: "music" },
+    { id: "Zi_XLOBDo_Y", category: "gaming" },
+    { id: "V-_O7nl0Ii0", category: "entertainment" }
+  ];
+
+  // Fetch titles for all videos (default + user)
+  async function fetchTitles(videos) {
+    const videosWithTitles = await Promise.all(videos.map(async v => {
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${v.id}&format=json`);
+        if (!res.ok) throw new Error('Not found');
+        const data = await res.json();
+        return { ...v, title: data.title };
+      } catch {
+        return { ...v, title: 'Unknown Title' };
+      }
+    }));
+    return videosWithTitles;
+  }
+
   function loadData() {
     userVideos = JSON.parse(localStorage.getItem(LS_KEYS.USER_VIDEOS)) || [];
     favorites = JSON.parse(localStorage.getItem(LS_KEYS.FAVORITES)) || [];
     likes = JSON.parse(localStorage.getItem(LS_KEYS.LIKES)) || {};
   }
-  // Save functions
   function saveUserVideos() {
     localStorage.setItem(LS_KEYS.USER_VIDEOS, JSON.stringify(userVideos));
   }
@@ -333,19 +307,12 @@
     localStorage.setItem(LS_KEYS.LIKES, JSON.stringify(likes));
   }
 
-  // Generate thumbnail URL from video id
-  function getThumbnailUrl(id) {
-    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
-  }
-
-  // Render videos depending on current tab and search
   function renderVideos() {
-    let videosToShow = [];
-
-    // Combine default + user videos
+    // Combine all videos
     let allVideos = [...defaultVideos, ...userVideos];
 
-    // Filter by category (tab)
+    // Filter by tab
+    let videosToShow = [];
     if (currentTab === 'home') {
       videosToShow = allVideos;
     } else if (currentTab === 'favorites') {
@@ -356,134 +323,119 @@
       videosToShow = allVideos.filter(v => v.category === currentTab);
     }
 
-    // Filter by search term (case insensitive substring match)
+    // Filter by search term
     if (searchTerm.trim() !== '') {
-      videosToShow = videosToShow.filter(v => v.title.toLowerCase().includes(searchTerm.toLowerCase()));
+      videosToShow = videosToShow.filter(v => v.title && v.title.toLowerCase().includes(searchTerm.toLowerCase()));
     }
-
-    videosGrid.innerHTML = '';
 
     if (videosToShow.length === 0) {
       videosGrid.innerHTML = `<p style="color:#ff3c00; font-weight:bold; grid-column:1/-1; text-align:center;">No videos found.</p>`;
       return;
     }
 
-    videosToShow.forEach(video => {
-      const card = document.createElement('div');
-      card.className = 'video-card';
+    // Fetch titles for the filtered videos
+    fetchTitles(videosToShow).then(videosWithTitles => {
+      videosGrid.innerHTML = '';
+      videosWithTitles.forEach(video => {
+        const card = document.createElement('div');
+        card.className = 'video-card';
 
-      const thumb = document.createElement('div');
-      thumb.className = 'video-thumb';
-      thumb.innerHTML = `
-        <iframe 
-          src="https://www.youtube.com/embed/${video.id}" 
-          title="${video.title}"
-          allowfullscreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        ></iframe>
-      `;
+        const thumb = document.createElement('div');
+        thumb.className = 'video-thumb';
+        thumb.innerHTML = `
+          <iframe 
+            src="https://www.youtube.com/embed/${video.id}" 
+            title="${video.title}"
+            allowfullscreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          ></iframe>
+        `;
 
-      const info = document.createElement('div');
-      info.className = 'video-info';
+        const info = document.createElement('div');
+        info.className = 'video-info';
 
-      const title = document.createElement('div');
-      title.className = 'video-title';
-      title.textContent = video.title;
+        const title = document.createElement('div');
+        title.className = 'video-title';
+        title.textContent = video.title || 'Unknown Title';
 
-      const actions = document.createElement('div');
-      actions.className = 'video-actions';
+        const actions = document.createElement('div');
+        actions.className = 'video-actions';
 
-      // Like button
-      const likeBtn = document.createElement('button');
-      likeBtn.className = 'like-btn';
-      if (likes[video.id]) {
-        likeBtn.classList.add('liked');
-      }
-      likeBtn.innerHTML = `&#10084; ${likes[video.id] ? 1 : 0}`;
-      likeBtn.title = 'Like';
-      likeBtn.addEventListener('click', () => {
+        const likeBtn = document.createElement('button');
+        likeBtn.className = 'like-btn';
         if (likes[video.id]) {
-          delete likes[video.id];
-        } else {
-          likes[video.id] = 1;
+          likeBtn.classList.add('liked');
         }
-        saveLikes();
-        renderVideos();
-      });
+        likeBtn.innerHTML = `&#10084; ${likes[video.id] ? 1 : 0}`;
+        likeBtn.title = 'Like';
+        likeBtn.addEventListener('click', () => {
+          if (likes[video.id]) {
+            delete likes[video.id];
+          } else {
+            likes[video.id] = 1;
+          }
+          saveLikes();
+          renderVideos();
+        });
 
-      // Favorite button
-      const favBtn = document.createElement('button');
-      favBtn.className = 'action-btn';
-      if (favorites.includes(video.id)) {
-        favBtn.textContent = 'Remove Favorite';
-      } else {
-        favBtn.textContent = 'Add Favorite';
-      }
-      favBtn.addEventListener('click', () => {
+        const favBtn = document.createElement('button');
+        favBtn.className = 'action-btn';
         if (favorites.includes(video.id)) {
-          favorites = favorites.filter(id => id !== video.id);
+          favBtn.textContent = 'Remove Favorite';
         } else {
-          favorites.push(video.id);
+          favBtn.textContent = 'Add Favorite';
         }
-        saveFavorites();
-        renderVideos();
+        favBtn.addEventListener('click', () => {
+          if (favorites.includes(video.id)) {
+            favorites = favorites.filter(id => id !== video.id);
+          } else {
+            favorites.push(video.id);
+          }
+          saveFavorites();
+          renderVideos();
+        });
+
+        actions.appendChild(likeBtn);
+        actions.appendChild(favBtn);
+
+        info.appendChild(title);
+        info.appendChild(actions);
+
+        card.appendChild(thumb);
+        card.appendChild(info);
+
+        videosGrid.appendChild(card);
       });
-
-      actions.appendChild(likeBtn);
-      actions.appendChild(favBtn);
-
-      info.appendChild(title);
-      info.appendChild(actions);
-
-      card.appendChild(thumb);
-      card.appendChild(info);
-
-      videosGrid.appendChild(card);
     });
   }
 
-  // Add new video by URL
-  async function addVideoByURL() {
-    const url = videoURLInput.value.trim();
-    if (!url) {
-      alert('Please enter a YouTube video URL.');
-      return;
-    }
-    // Extract ID
+  async function addVideoPrompt() {
+    const url = prompt('Enter YouTube video URL:');
+    if (!url) return;
     const idMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
     if (!idMatch) {
       alert('Invalid YouTube URL.');
       return;
     }
     const videoId = idMatch[1];
-    // Check if video already added by user
     if (userVideos.find(v => v.id === videoId) || defaultVideos.find(v => v.id === videoId)) {
       alert('Video already exists.');
-      videoURLInput.value = '';
       return;
     }
-    // Fetch title via oEmbed API
+    // Test if video is valid (fetch title)
     try {
       const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
       if (!res.ok) throw new Error('Video not found');
       const data = await res.json();
-      // Save user video with category "uploads"
-      userVideos.push({ id: videoId, title: data.title, category: 'uploads' });
+      userVideos.push({ id: videoId, category: 'uploads' });
       saveUserVideos();
-      videoURLInput.value = '';
-      // If current tab is uploads or home, re-render to show new video
-      if (currentTab === 'uploads' || currentTab === 'home') {
-        renderVideos();
-      }
-      alert('Video added successfully!');
-    } catch (error) {
+      alert(`Video "${data.title}" added!`);
+      if (currentTab === 'uploads' || currentTab === 'home') renderVideos();
+    } catch {
       alert('Could not fetch video info. Please check the URL.');
     }
   }
 
-  // Event Listeners
-
-  // Tabs buttons click
   tabsButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       tabsButtons.forEach(b => b.classList.remove('active'));
@@ -493,21 +445,19 @@
     });
   });
 
-  // Search input (live search)
   searchInput.addEventListener('input', e => {
     searchTerm = e.target.value;
     renderVideos();
   });
 
-  // Upload button
-  uploadVideoBtn.addEventListener('click', addVideoByURL);
+  addVideoBtn.addEventListener('click', addVideoPrompt);
 
-  // Initialization
   function init() {
     loadData();
     renderVideos();
   }
   init();
+
 </script>
 
 </body>
