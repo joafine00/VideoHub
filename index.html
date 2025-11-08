@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>VideoHub 3.0 - Your Personal YouTube Dashboard</title>
 <style>
-  /* ===== Reset & basics ===== */
-  * {
-    box-sizing: border-box;
-  }
   body {
     margin: 0; background: #121212; color: #eee;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,7 +16,6 @@
   button {
     cursor: pointer;
   }
-  /* ===== Layout ===== */
   .app {
     display: flex; height: 100vh; width: 100vw;
   }
@@ -51,8 +46,6 @@
     font-size: 1.5rem;
     border-bottom: 2px solid #ff3c00;
   }
-
-  /* ===== Sidebar ===== */
   .sidebar h2 {
     margin: 0 0 20px 0;
     font-weight: 700;
@@ -85,8 +78,6 @@
     color: #121212;
     font-weight: 900;
   }
-
-  /* ===== Search ===== */
   .search-box {
     margin-bottom: 20px;
   }
@@ -103,59 +94,6 @@
     background-color: #333;
     color: #fff;
   }
-
-  /* ===== Profile Section ===== */
-  .profile-section {
-    border-top: 2px solid #ff3c00;
-    padding-top: 20px;
-  }
-  .profile-avatar {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: #333;
-    margin: 0 auto 10px auto;
-    object-fit: cover;
-    border: 3px solid #ff3c00;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-  }
-  .profile-avatar:hover {
-    transform: scale(1.05);
-  }
-  .profile-name {
-    text-align: center;
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-  .profile-inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-  .profile-inputs input[type="text"] {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
-    outline: none;
-  }
-  .profile-inputs input[type="file"] {
-    display: none;
-  }
-  label[for="avatarUpload"] {
-    cursor: pointer;
-    text-align: center;
-    display: block;
-    background: #ff3c00;
-    color: #121212;
-    font-weight: 700;
-    padding: 8px 10px;
-    border-radius: 10px;
-    user-select: none;
-  }
-
-  /* ===== Videos Grid ===== */
   .videos-container {
     padding: 20px;
     flex-grow: 1;
@@ -183,14 +121,11 @@
     position: relative;
     width: 100%;
     height: 180px;
-    background-position: center;
-    background-size: cover;
   }
   .video-thumb iframe {
     width: 100%;
     height: 180px;
     border: none;
-    pointer-events: none; /* prevent accidental click on iframe */
   }
   .video-info {
     padding: 10px 15px;
@@ -204,11 +139,6 @@
     font-size: 1.1rem;
     margin-bottom: 8px;
     user-select: text;
-  }
-  .video-meta {
-    font-size: 0.85rem;
-    color: #bbb;
-    margin-bottom: 10px;
   }
   .video-actions {
     margin-top: auto;
@@ -227,11 +157,6 @@
   }
   button.action-btn:hover {
     background-color: #e63600;
-  }
-  button.action-btn.disabled {
-    background-color: #555;
-    color: #999;
-    cursor: default;
   }
   button.like-btn {
     display: flex;
@@ -252,67 +177,8 @@
   button.like-btn:hover {
     color: #ff7f7f;
   }
-  .like-icon {
-    font-size: 1.2rem;
-  }
-  .comments-toggle {
-    margin-top: 10px;
-    background: transparent;
-    border: none;
-    color: #ff3c00;
-    cursor: pointer;
-    font-weight: 600;
-    user-select: none;
-    align-self: flex-start;
-  }
-  .comments-section {
-    background: #1a1a1a;
-    border-radius: 10px;
-    margin-top: 10px;
-    max-height: 200px;
-    overflow-y: auto;
-    padding: 8px;
-  }
-  .comment {
-    padding: 5px 10px;
-    margin-bottom: 6px;
-    background: #333;
-    border-radius: 8px;
-    font-size: 0.9rem;
-  }
-  .comment strong {
-    color: #ff3c00;
-  }
-  .comment-form {
-    display: flex;
-    margin-top: 8px;
-    gap: 8px;
-  }
-  .comment-form input[type="text"] {
-    flex-grow: 1;
-    border-radius: 8px;
-    border: none;
-    padding: 6px 10px;
-    font-size: 1rem;
-    outline: none;
-  }
-  .comment-form button {
-    background: #ff3c00;
-    border: none;
-    border-radius: 8px;
-    color: #121212;
-    font-weight: 700;
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  .comment-form button:hover {
-    background-color: #e63600;
-  }
-
-  /* ===== Upload Section ===== */
   .upload-section {
-    margin-top: 15px;
+    margin: 0 20px 20px 20px;
     padding: 15px;
     background: #222;
     border-radius: 12px;
@@ -346,8 +212,6 @@
   .upload-section button:hover {
     background-color: #e63600;
   }
-
-  /* ===== Responsive ===== */
   @media (max-width: 768px) {
     .app {
       flex-direction: column;
@@ -399,18 +263,7 @@
       <button class="menu-btn" data-tab="entertainment">Entertainment</button>
       <button class="menu-btn" data-tab="favorites">Favorites</button>
       <button class="menu-btn" data-tab="uploads">My Uploads</button>
-      <button class="menu-btn" data-tab="profile">Profile</button>
     </nav>
-
-    <section class="profile-section" aria-label="User profile settings">
-      <img src="" alt="User avatar" class="profile-avatar" id="profileAvatar" tabindex="0" title="Click to change avatar" />
-      <div class="profile-name" id="profileNameDisplay">Your Name</div>
-      <div class="profile-inputs">
-        <input type="text" id="profileNameInput" placeholder="Enter your name" maxlength="25" />
-        <input type="file" id="avatarUpload" accept="image/*" />
-        <label for="avatarUpload">Upload Avatar</label>
-      </div>
-    </section>
   </aside>
 
   <main class="content" role="main">
@@ -430,127 +283,232 @@
 </div>
 
 <script>
-  // === Constants and variables ===
-  const VIDEOS_PER_PAGE = 9;
-  let currentTab = 'home';
-  let currentPage = 1;
-  let allVideos = [];
-  let userVideos = [];
-  let favorites = [];
-  let likes = {};
-  let comments = {};
-  let profile = { name: '', avatar: '' };
-  let filteredVideos = [];
-
-  // DOM elements
+  // ===== Constants =====
   const tabsButtons = document.querySelectorAll('.menu-btn');
   const videosGrid = document.getElementById('videosGrid');
   const searchInput = document.getElementById('searchInput');
   const videoURLInput = document.getElementById('videoURLInput');
   const uploadVideoBtn = document.getElementById('uploadVideoBtn');
-  const profileNameInput = document.getElementById('profileNameInput');
-  const profileNameDisplay = document.getElementById('profileNameDisplay');
-  const profileAvatar = document.getElementById('profileAvatar');
-  const avatarUpload = document.getElementById('avatarUpload');
 
-  // Default videos with IDs and categories
-  const defaultVideos = [
-    { id: "dQw4w9WgXcQ", category: "music" },
-    { id: "noLL5xy0UnU", category: "gaming" },
-    { id: "6zp3mt5Dd2c", category: "education" },
-    { id: "MsXdUtlDVhk", category: "entertainment" },
-    { id: "tAGnKpE4NCI", category: "music" },
-    { id: "3JZ_D3ELwOQ", category: "music" },
-    { id: "Zi_XLOBDo_Y", category: "gaming" },
-    { id: "V-_O7nl0Ii0", category: "entertainment" }
-  ];
-
-  // ======= LocalStorage keys =======
+  // LocalStorage keys
   const LS_KEYS = {
     USER_VIDEOS: 'vh_userVideos',
     FAVORITES: 'vh_favorites',
     LIKES: 'vh_likes',
-    COMMENTS: 'vh_comments',
-    PROFILE: 'vh_profile'
   };
 
-  // ========== Helpers ==========
+  // Default videos dataset
+  const defaultVideos = [
+    { id: "dQw4w9WgXcQ", category: "music", title: "Rick Astley - Never Gonna Give You Up" },
+    { id: "noLL5xy0UnU", category: "gaming", title: "Minecraft Hardcore Mode" },
+    { id: "6zp3mt5Dd2c", category: "education", title: "Learn JavaScript in 10 Minutes" },
+    { id: "MsXdUtlDVhk", category: "entertainment", title: "Funny Cats Compilation" },
+    { id: "tAGnKpE4NCI", category: "music", title: "Ed Sheeran - Shape of You" },
+    { id: "3JZ_D3ELwOQ", category: "music", title: "Mark Ronson - Uptown Funk" },
+    { id: "Zi_XLOBDo_Y", category: "gaming", title: "Top 10 Fortnite Plays" },
+    { id: "V-_O7nl0Ii0", category: "entertainment", title: "Best Movie Trailers 2023" }
+  ];
 
-  // Save/load to localStorage
-  function saveLS(key, data) {
-    localStorage.setItem(key, JSON.stringify(data));
+  // Data holders
+  let userVideos = [];
+  let favorites = [];
+  let likes = {};
+  let currentTab = 'home';
+  let searchTerm = '';
+
+  // Load localStorage data
+  function loadData() {
+    userVideos = JSON.parse(localStorage.getItem(LS_KEYS.USER_VIDEOS)) || [];
+    favorites = JSON.parse(localStorage.getItem(LS_KEYS.FAVORITES)) || [];
+    likes = JSON.parse(localStorage.getItem(LS_KEYS.LIKES)) || {};
   }
-  function loadLS(key, def = null) {
-    const data = localStorage.getItem(key);
-    if(!data) return def;
-    try {
-      return JSON.parse(data);
-    } catch {
-      return def;
+  // Save functions
+  function saveUserVideos() {
+    localStorage.setItem(LS_KEYS.USER_VIDEOS, JSON.stringify(userVideos));
+  }
+  function saveFavorites() {
+    localStorage.setItem(LS_KEYS.FAVORITES, JSON.stringify(favorites));
+  }
+  function saveLikes() {
+    localStorage.setItem(LS_KEYS.LIKES, JSON.stringify(likes));
+  }
+
+  // Generate thumbnail URL from video id
+  function getThumbnailUrl(id) {
+    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  }
+
+  // Render videos depending on current tab and search
+  function renderVideos() {
+    let videosToShow = [];
+
+    // Combine default + user videos
+    let allVideos = [...defaultVideos, ...userVideos];
+
+    // Filter by category (tab)
+    if (currentTab === 'home') {
+      videosToShow = allVideos;
+    } else if (currentTab === 'favorites') {
+      videosToShow = allVideos.filter(v => favorites.includes(v.id));
+    } else if (currentTab === 'uploads') {
+      videosToShow = userVideos;
+    } else {
+      videosToShow = allVideos.filter(v => v.category === currentTab);
     }
+
+    // Filter by search term (case insensitive substring match)
+    if (searchTerm.trim() !== '') {
+      videosToShow = videosToShow.filter(v => v.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+
+    videosGrid.innerHTML = '';
+
+    if (videosToShow.length === 0) {
+      videosGrid.innerHTML = `<p style="color:#ff3c00; font-weight:bold; grid-column:1/-1; text-align:center;">No videos found.</p>`;
+      return;
+    }
+
+    videosToShow.forEach(video => {
+      const card = document.createElement('div');
+      card.className = 'video-card';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'video-thumb';
+      thumb.innerHTML = `
+        <iframe 
+          src="https://www.youtube.com/embed/${video.id}" 
+          title="${video.title}"
+          allowfullscreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        ></iframe>
+      `;
+
+      const info = document.createElement('div');
+      info.className = 'video-info';
+
+      const title = document.createElement('div');
+      title.className = 'video-title';
+      title.textContent = video.title;
+
+      const actions = document.createElement('div');
+      actions.className = 'video-actions';
+
+      // Like button
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'like-btn';
+      if (likes[video.id]) {
+        likeBtn.classList.add('liked');
+      }
+      likeBtn.innerHTML = `&#10084; ${likes[video.id] ? 1 : 0}`;
+      likeBtn.title = 'Like';
+      likeBtn.addEventListener('click', () => {
+        if (likes[video.id]) {
+          delete likes[video.id];
+        } else {
+          likes[video.id] = 1;
+        }
+        saveLikes();
+        renderVideos();
+      });
+
+      // Favorite button
+      const favBtn = document.createElement('button');
+      favBtn.className = 'action-btn';
+      if (favorites.includes(video.id)) {
+        favBtn.textContent = 'Remove Favorite';
+      } else {
+        favBtn.textContent = 'Add Favorite';
+      }
+      favBtn.addEventListener('click', () => {
+        if (favorites.includes(video.id)) {
+          favorites = favorites.filter(id => id !== video.id);
+        } else {
+          favorites.push(video.id);
+        }
+        saveFavorites();
+        renderVideos();
+      });
+
+      actions.appendChild(likeBtn);
+      actions.appendChild(favBtn);
+
+      info.appendChild(title);
+      info.appendChild(actions);
+
+      card.appendChild(thumb);
+      card.appendChild(info);
+
+      videosGrid.appendChild(card);
+    });
   }
 
-  // Extract YouTube video ID from URL
-  function extractYouTubeID(url) {
-    const reg = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
-    const match = url.match(reg);
-    return match ? match[1] : null;
-  }
-
-  // Fetch video info via YouTube oEmbed API (title + thumbnail)
-  async function fetchVideoInfo(videoId) {
+  // Add new video by URL
+  async function addVideoByURL() {
+    const url = videoURLInput.value.trim();
+    if (!url) {
+      alert('Please enter a YouTube video URL.');
+      return;
+    }
+    // Extract ID
+    const idMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+    if (!idMatch) {
+      alert('Invalid YouTube URL.');
+      return;
+    }
+    const videoId = idMatch[1];
+    // Check if video already added by user
+    if (userVideos.find(v => v.id === videoId) || defaultVideos.find(v => v.id === videoId)) {
+      alert('Video already exists.');
+      videoURLInput.value = '';
+      return;
+    }
+    // Fetch title via oEmbed API
     try {
       const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
       if (!res.ok) throw new Error('Video not found');
       const data = await res.json();
-      return {
-        title: data.title,
-        thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-      };
-    } catch {
-      return null;
+      // Save user video with category "uploads"
+      userVideos.push({ id: videoId, title: data.title, category: 'uploads' });
+      saveUserVideos();
+      videoURLInput.value = '';
+      // If current tab is uploads or home, re-render to show new video
+      if (currentTab === 'uploads' || currentTab === 'home') {
+        renderVideos();
+      }
+      alert('Video added successfully!');
+    } catch (error) {
+      alert('Could not fetch video info. Please check the URL.');
     }
   }
 
-  // Load profile from localStorage
-  function loadProfile() {
-    const p = loadLS(LS_KEYS.PROFILE, {name: '', avatar: ''});
-    profile = p;
-    profileNameDisplay.textContent = profile.name || 'Your Name';
-    profileNameInput.value = profile.name || '';
-    profileAvatar.src = profile.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-  }
+  // Event Listeners
 
-  // Save profile to localStorage
-  function saveProfile() {
-    saveLS(LS_KEYS.PROFILE, profile);
-  }
+  // Tabs buttons click
+  tabsButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabsButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTab = btn.dataset.tab;
+      renderVideos();
+    });
+  });
 
-  // Load user videos
-  function loadUserVideos() {
-    userVideos = loadLS(LS_KEYS.USER_VIDEOS, []);
-  }
+  // Search input (live search)
+  searchInput.addEventListener('input', e => {
+    searchTerm = e.target.value;
+    renderVideos();
+  });
 
-  // Save user videos
-  function saveUserVideos() {
-    saveLS(LS_KEYS.USER_VIDEOS, userVideos);
-  }
+  // Upload button
+  uploadVideoBtn.addEventListener('click', addVideoByURL);
 
-  // Load favorites
-  function loadFavorites() {
-    favorites = loadLS(LS_KEYS.FAVORITES, []);
+  // Initialization
+  function init() {
+    loadData();
+    renderVideos();
   }
+  init();
+</script>
 
-  // Save favorites
-  function saveFavorites() {
-    saveLS(LS_KEYS.FAVORITES, favorites);
-  }
-
-  // Load likes
-  function loadLikes() {
-    likes = loadLS(LS_KEYS.LIKES, {});
-  }
-
-  // Save likes
-  function saveLikes() {
-    saveLS(LS_KEYS.LIKES, likes
+</body>
+</html>
