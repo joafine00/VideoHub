@@ -3,66 +3,57 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VideoHub - Watch & Enjoy</title>
+<title>VideoHub - Watch & Like Videos</title>
 <style>
-  /* Reset */
+  /* Basic Reset */
   * {
     box-sizing: border-box;
   }
   body {
     margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #121212;
     color: #eee;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    padding: 20px 0;
-    user-select: none;
-  }
-  .main-wrapper {
-    width: 1280px;
-    max-width: 100%;
-    background: #181818;
-    border-radius: 8px;
-    box-shadow: 0 0 15px #ff3c00cc;
-    display: flex;
-    flex-direction: column;
-    height: 90vh;
+    cursor: default;
+    min-width: 1280px;
   }
   header {
     background: #1f1f1f;
     padding: 15px 30px;
-    font-size: 1.8rem;
+    font-size: 1.75rem;
     font-weight: bold;
     text-align: center;
     border-bottom: 3px solid #ff3c00;
   }
   .container {
+    max-width: 1366px;
+    margin: 0 auto;
     display: flex;
-    flex-grow: 1;
-    overflow: hidden;
+    height: calc(100vh - 66px);
+    background: #181818;
   }
   nav.sidebar {
     width: 280px;
     background: #222;
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    gap: 20px;
+    padding: 25px 20px;
+    gap: 12px;
+    user-select: none;
   }
   nav.sidebar h2 {
     font-size: 1.4rem;
+    margin-bottom: 20px;
     color: #ff3c00;
-    margin: 0 0 10px 0;
   }
   nav.sidebar button.tab-btn {
     background: #333;
     border: none;
     border-radius: 6px;
     color: #ccc;
-    padding: 12px 10px;
-    cursor: pointer;
+    padding: 14px 12px;
     font-weight: 600;
+    cursor: pointer;
     text-align: left;
     transition: background-color 0.3s ease;
   }
@@ -72,83 +63,95 @@
     color: #121212;
     font-weight: bold;
   }
-  nav.sidebar .search-section label {
-    font-size: 1rem;
-    margin-bottom: 6px;
-    display: block;
-  }
-  nav.sidebar input[type="search"],
-  nav.sidebar input[type="url"] {
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    font-size: 1rem;
-    width: 100%;
-    background: #333;
-    color: #eee;
-  }
-  nav.sidebar button.upload-btn {
-    margin-top: 10px;
-    background: #ff3c00;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    font-weight: bold;
+  nav.sidebar input[type="text"] {
     padding: 10px;
-    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    font-size: 1rem;
     width: 100%;
-    transition: background-color 0.3s ease;
-  }
-  nav.sidebar button.upload-btn:hover {
-    background: #e63600;
+    margin-bottom: 12px;
+    color: #121212;
   }
   main.content {
     flex-grow: 1;
     padding: 20px;
     overflow-y: auto;
-    background: #181818;
-    display: flex;
-    flex-direction: column;
   }
   .videos-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
+    grid-template-columns: repeat(auto-fill,minmax(320px,1fr));
+    gap: 16px;
   }
   .video-card {
     background: #272727;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 0 8px #ff3c00cc;
     display: flex;
     flex-direction: column;
-    transition: transform 0.2s ease;
   }
-  .video-card:hover {
-    transform: scale(1.03);
+  .video-thumbnail {
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    background: #000;
   }
-  .thumbnail {
+  .video-thumbnail img {
+    position: absolute;
     width: 100%;
-    height: 180px;
-    background-size: cover;
-    background-position: center;
+    height: 100%;
+    object-fit: cover;
+    top: 0;
+    left: 0;
   }
   .video-info {
-    padding: 10px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   .video-title {
     font-weight: 600;
     font-size: 1rem;
-    margin: 0 0 6px 0;
     color: #eee;
-    line-height: 1.2;
+    flex-grow: 1;
+    margin-right: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
-  .video-channel {
-    font-size: 0.85rem;
-    color: #bbb;
+  .video-buttons {
+    display: flex;
+    gap: 8px;
   }
+  button.like-btn, button.fav-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #eee;
+    background-color: #444;
+    transition: background-color 0.3s ease;
+  }
+  button.like-btn.liked {
+    background-color: #ff3c00;
+    color: #121212;
+  }
+  button.fav-btn.favorited {
+    background-color: #ff3c00;
+    color: #121212;
+  }
+  button.like-btn:hover:not(.liked),
+  button.fav-btn:hover:not(.favorited) {
+    background-color: #e63600;
+  }
+  /* Pagination */
   .pagination {
-    margin-top: 20px;
+    margin-top: 25px;
     display: flex;
     justify-content: center;
     gap: 8px;
@@ -158,7 +161,7 @@
     background: #333;
     border: none;
     color: #ccc;
-    padding: 8px 14px;
+    padding: 10px 16px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
@@ -174,335 +177,350 @@
     cursor: default;
   }
 
-  /* Modal styles */
+  /* Modal */
   .modal {
     position: fixed;
-    top: 0; left: 0; right:0; bottom: 0;
-    background: rgba(0,0,0,0.85);
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.95);
     display: none;
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    padding: 20px;
+    padding: 0;
   }
   .modal.active {
     display: flex;
   }
   .modal-content {
-    background: #181818;
-    width: 900px;
-    max-width: 100%;
-    border-radius: 8px;
-    overflow: hidden;
+    position: relative;
+    width: 90vw;
+    height: 90vh;
+    background: #121212;
+    border-radius: 12px;
+    box-shadow: 0 0 25px #ff3c00cc;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
-  .modal-header {
-    display: flex;
-    justify-content: flex-end;
-    background: #1f1f1f;
-    padding: 10px;
-  }
-  .modal-close {
-    cursor: pointer;
-    font-size: 1.6rem;
-    color: #ff3c00;
-    font-weight: bold;
-  }
-  .modal-video {
-    width: 100%;
-    height: 500px;
-    background: black;
-  }
-  iframe.modal-iframe {
+  iframe {
+    border: none;
+    flex-grow: 1;
     width: 100%;
     height: 100%;
-    border: none;
   }
   .modal-footer {
-    background: #222;
-    padding: 15px;
+    background: #1f1f1f;
+    padding: 12px 20px;
     display: flex;
     justify-content: flex-start;
-    gap: 20px;
+    gap: 15px;
+    align-items: center;
   }
-  button.modal-btn {
-    background: #ff3c00;
+  .modal-footer button {
+    background: #333;
     border: none;
     border-radius: 6px;
-    color: #121212;
-    font-weight: bold;
-    padding: 10px 20px;
+    color: #ccc;
+    padding: 10px 18px;
+    font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-  button.modal-btn.liked {
-    background: #ff6000;
+  .modal-footer button.liked,
+  .modal-footer button.favorited {
+    background-color: #ff3c00;
+    color: #121212;
   }
-  button.modal-btn.favorite {
-    background: #ff3c00;
+  .modal-footer button:hover:not(.liked):not(.favorited) {
+    background-color: #e63600;
   }
-  button.modal-btn:hover {
-    background: #e63600;
+  .modal-close {
+    position: absolute;
+    top: 10px; right: 15px;
+    font-size: 2rem;
+    color: #eee;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+  }
+  .modal-close:hover {
+    color: #ff3c00;
+  }
+
+  /* Scrollbar styling for main content */
+  main.content::-webkit-scrollbar {
+    width: 10px;
+  }
+  main.content::-webkit-scrollbar-track {
+    background: #222;
+  }
+  main.content::-webkit-scrollbar-thumb {
+    background-color: #ff3c00;
+    border-radius: 10px;
   }
 
   /* Responsive */
   @media (max-width: 1366px) {
-    .videos-grid {
-      grid-template-columns: repeat(3, 1fr);
+    body {
+      min-width: auto;
     }
-  }
-  @media (max-width: 980px) {
-    .main-wrapper {
-      width: 100%;
-      height: 100vh;
-      border-radius: 0;
-      box-shadow: none;
+    .container {
+      width: 100vw;
+      height: auto;
+      flex-direction: column;
+      max-width: none;
+      padding-bottom: 30px;
     }
     nav.sidebar {
-      width: 220px;
-    }
-    .videos-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .modal-content {
       width: 100%;
-      height: 90vh;
+      flex-direction: row;
+      overflow-x: auto;
+      padding: 15px 10px;
+      gap: 12px;
+      justify-content: start;
     }
-    .modal-video {
-      height: 70vh;
+    nav.sidebar > * {
+      margin-right: 12px;
+      flex-shrink: 0;
     }
-  }
-  @media (max-width: 600px) {
-    nav.sidebar {
-      display: none;
+    main.content {
+      height: auto;
+      padding: 15px 10px;
     }
     .videos-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
     }
   }
 </style>
 </head>
 <body>
-  <div class="main-wrapper">
-    <header>VideoHub 🎥</header>
-    <div class="container">
-      <nav class="sidebar">
-        <h2>Categories</h2>
-        <button class="tab-btn active" data-tab="all">All</button>
-        <button class="tab-btn" data-tab="uploads">Uploads</button>
-        <button class="tab-btn" data-tab="favorites">Favorites</button>
+<header>VideoHub 🎥</header>
+<div class="container">
+  <nav class="sidebar">
+    <h2>Categories</h2>
+    <button class="tab-btn active" data-tab="all">All Videos</button>
+    <button class="tab-btn" data-tab="uploads">Uploads</button>
+    <button class="tab-btn" data-tab="favorites">Favorites</button>
+    <input type="text" id="searchInput" placeholder="Search videos..." aria-label="Search videos" />
+  </nav>
+  <main class="content">
+    <div class="videos-grid" id="videosGrid"></div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+</div>
 
-        <div class="search-section">
-          <label for="searchInput">Search Videos</label>
-          <input type="search" id="searchInput" placeholder="Type to search..." autocomplete="off" />
-        </div>
-
-        <div class="upload-section">
-          <label for="videoURL">Add YouTube Video (URL)</label>
-          <input type="url" id="videoURL" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" />
-          <button class="upload-btn" id="uploadBtn">Add Video</button>
-        </div>
-      </nav>
-      <main class="content">
-        <div class="videos-grid" id="videosGrid"></div>
-        <div class="pagination" id="pagination"></div>
-      </main>
+<!-- Modal for playing videos -->
+<div class="modal" id="videoModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle" tabindex="-1">
+  <div class="modal-content">
+    <span class="modal-close" id="modalCloseBtn" aria-label="Close video">&times;</span>
+    <iframe id="modalIframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <div class="modal-footer">
+      <button id="modalLikeBtn" class="like-btn" aria-pressed="false">Like 👍</button>
+      <button id="modalFavBtn" class="fav-btn" aria-pressed="false">Add to Favorites ⭐</button>
     </div>
   </div>
-
-  <!-- Modal -->
-  <div class="modal" id="videoModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span class="modal-close" id="modalClose">&times;</span>
-      </div>
-      <div class="modal-video" id="modalVideoContainer">
-        <!-- iframe will be inserted here -->
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn" id="likeBtn">Like 👍</button>
-        <button class="modal-btn" id="favBtn">Add to Favorites ⭐</button>
-      </div>
-    </div>
-  </div>
+</div>
 
 <script>
-  // Variables
   const videosGrid = document.getElementById('videosGrid');
-  const videoURLInput = document.getElementById('videoURL');
-  const uploadBtn = document.getElementById('uploadBtn');
+  const searchInput = document.getElementById('searchInput');
   const pagination = document.getElementById('pagination');
   const tabs = document.querySelectorAll('nav.sidebar button.tab-btn');
-  const searchInput = document.getElementById('searchInput');
+  const videoModal = document.getElementById('videoModal');
+  const modalIframe = document.getElementById('modalIframe');
+  const modalCloseBtn = document.getElementById('modalCloseBtn');
+  const modalLikeBtn = document.getElementById('modalLikeBtn');
+  const modalFavBtn = document.getElementById('modalFavBtn');
 
-  const modal = document.getElementById('videoModal');
-  const modalClose = document.getElementById('modalClose');
-  const modalVideoContainer = document.getElementById('modalVideoContainer');
-  const likeBtn = document.getElementById('likeBtn');
-  const favBtn = document.getElementById('favBtn');
-
-  const VIDEOS_PER_PAGE = 12;
+  const VIDEOS_PER_PAGE = 8;
   let currentPage = 1;
   let currentTab = 'all';
-  let currentVideos = [];
-  let currentVideo = null;
+  let currentVideoId = null;
 
-  // Default videos - ids and channel names added
+  // Default videos with YouTube IDs (can add more)
   const defaultVideos = [
-    { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give You Up", channel: "Rick Astley" },
-    { id: "noLL5xy0UnU", title: "Relaxing Jazz Music", channel: "Jazz & Blues" },
-    { id: "6zp3mt5Dd2c", title: "Learn JavaScript in 12 Minutes", channel: "Web Dev Simplified" },
-    { id: "MsXdUtlDVhk", title: "Epic Mountain Biking", channel: "Outdoor Adventures" },
-    { id: "tAGnKpE4NCI", title: "Coldplay - Paradise", channel: "Coldplay Official" },
-    { id: "3JZ_D3ELwOQ", title: "Adele - Hello", channel: "Adele" },
-    { id: "Zi_XLOBDo_Y", title: "Michael Jackson - Thriller", channel: "Michael Jackson" },
-    { id: "V-_O7nl0Ii0", title: "Top 10 Movie Trailers", channel: "Movie Central" }
+    { id: "dQw4w9WgXcQ" },
+    { id: "noLL5xy0UnU" },
+    { id: "6zp3mt5Dd2c" },
+    { id: "MsXdUtlDVhk" },
+    { id: "tAGnKpE4NCI" },
+    { id: "3JZ_D3ELwOQ" },
+    { id: "Zi_XLOBDo_Y" },
+    { id: "V-_O7nl0Ii0" }
   ];
 
-  // LocalStorage keys
-  const LS_VIDEOS = 'userVideos';
-  const LS_LIKES = 'likedVideos';
-  const LS_FAVORITES = 'favoriteVideos';
-
-  // Load from localStorage
+  // Save/load user videos in localStorage
   function loadUserVideos() {
-    return JSON.parse(localStorage.getItem(LS_VIDEOS) || '[]');
+    return JSON.parse(localStorage.getItem('userVideos') || '[]');
   }
   function saveUserVideos(videos) {
-    localStorage.setItem(LS_VIDEOS, JSON.stringify(videos));
+    localStorage.setItem('userVideos', JSON.stringify(videos));
   }
+  // Likes saved as object { videoId: true/false }
   function loadLikes() {
-    return JSON.parse(localStorage.getItem(LS_LIKES) || '[]');
+    return JSON.parse(localStorage.getItem('likes') || '{}');
   }
   function saveLikes(likes) {
-    localStorage.setItem(LS_LIKES, JSON.stringify(likes));
+    localStorage.setItem('likes', JSON.stringify(likes));
   }
+  // Favorites saved as array of videoIds
   function loadFavorites() {
-    return JSON.parse(localStorage.getItem(LS_FAVORITES) || '[]');
+    return JSON.parse(localStorage.getItem('favorites') || '[]');
   }
   function saveFavorites(favorites) {
-    localStorage.setItem(LS_FAVORITES, JSON.stringify(favorites));
+    localStorage.setItem('favorites', JSON.stringify(favorites));
   }
 
-  // Get all videos combined
-  function getAllVideos() {
+  // Combine videos by tab and filter by search
+  async function getFilteredVideos() {
     const userVideos = loadUserVideos();
-    return [...defaultVideos, ...userVideos];
-  }
+    let allVideos;
 
-  // Filter videos based on tab and search
-  function getFilteredVideos() {
-    let videos = [];
-    const userVideos = loadUserVideos();
-    const favorites = loadFavorites();
-
-    switch(currentTab) {
+    switch (currentTab) {
       case 'uploads':
-        videos = userVideos;
+        allVideos = userVideos;
         break;
       case 'favorites':
-        videos = getAllVideos().filter(v => favorites.includes(v.id));
+        const favorites = loadFavorites();
+        allVideos = [...defaultVideos, ...userVideos].filter(v => favorites.includes(v.id));
         break;
       case 'all':
       default:
-        videos = getAllVideos();
+        allVideos = [...defaultVideos, ...userVideos];
+        break;
     }
 
-    // Filter by search input (case insensitive, partial match)
-    const searchTerm = searchInput.value.trim().toLowerCase();
-    if(searchTerm !== '') {
-      videos = videos.filter(v => v.title.toLowerCase().includes(searchTerm));
-    }
-    return videos;
-  }
+    const searchTerm = searchInput.value.toLowerCase().trim();
 
-  // Extract YouTube video ID from URL
-  function extractYouTubeID(url) {
-    const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
-  }
+    if (!searchTerm) return allVideos;
 
-  // Fetch video info via YouTube oEmbed API
-  async function fetchVideoInfo(videoId) {
-    try {
-      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-      if (!res.ok) throw new Error('Video not found');
-      const data = await res.json();
-      return {
-        id: videoId,
-        title: data.title,
-        channel: data.author_name
-      };
-    } catch {
-      return null;
-    }
+    // Filter videos by title matching search term
+    // Since titles are fetched async, we need to fetch titles for filtering
+    // To avoid multiple fetches every time, let's cache titles
+
+    const videosWithTitles = await Promise.all(allVideos.map(async (video) => {
+      if(video.title) return video; // Already fetched
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`);
+        if(res.ok) {
+          const data = await res.json();
+          video.title = data.title;
+        } else {
+          video.title = 'Unknown Title';
+        }
+      } catch {
+        video.title = 'Unknown Title';
+      }
+      return video;
+    }));
+
+    return videosWithTitles.filter(video => video.title.toLowerCase().includes(searchTerm));
   }
 
   // Render videos grid
-  function renderVideos(page = 1) {
-    const allVideos = getFilteredVideos();
+  async function renderVideos(page = 1) {
+    const allVideos = await getFilteredVideos();
     const totalVideos = allVideos.length;
     const totalPages = Math.ceil(totalVideos / VIDEOS_PER_PAGE);
 
-    if (page > totalPages) page = totalPages;
-    if (page < 1) page = 1;
+    if(page > totalPages) page = totalPages;
+    if(page < 1) page = 1;
     currentPage = page;
 
     videosGrid.innerHTML = '';
 
-    if (totalVideos === 0) {
-      videosGrid.innerHTML = '<p style="color:#ccc; text-align:center; grid-column: span 4;">No videos to display.</p>';
+    if(totalVideos === 0) {
+      videosGrid.innerHTML = '<p style="color:#ccc; text-align:center;">No videos to display.</p>';
       pagination.innerHTML = '';
       return;
     }
 
-    const startIndex = (page - 1) * VIDEOS_PER_PAGE;
+    const startIndex = (page -1) * VIDEOS_PER_PAGE;
     const endIndex = startIndex + VIDEOS_PER_PAGE;
     const videosToShow = allVideos.slice(startIndex, endIndex);
 
-    videosToShow.forEach(video => {
+    const likes = loadLikes();
+    const favorites = loadFavorites();
+
+    for(const video of videosToShow) {
       const card = document.createElement('div');
       card.className = 'video-card';
-      card.dataset.videoId = video.id;
 
-      // Thumbnail from YouTube
-      const thumbnail = document.createElement('div');
-      thumbnail.className = 'thumbnail';
-      thumbnail.style.backgroundImage = `url('https://img.youtube.com/vi/${video.id}/hqdefault.jpg')`;
-      card.appendChild(thumbnail);
+      // Thumbnail from YouTube standard URL
+      const thumbUrl = `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`;
 
-      // Video info container
-      const info = document.createElement('div');
-      info.className = 'video-info';
+      const thumbnailDiv = document.createElement('div');
+      thumbnailDiv.className = 'video-thumbnail';
+      const img = document.createElement('img');
+      img.src = thumbUrl;
+      img.alt = `Thumbnail for ${video.title || 'video'}`;
+      thumbnailDiv.appendChild(img);
+      thumbnailDiv.addEventListener('click', () => openModal(video.id));
+      card.appendChild(thumbnailDiv);
 
-      const title = document.createElement('p');
-      title.className = 'video-title';
-      title.textContent = video.title;
-      info.appendChild(title);
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'video-info';
 
-      const channel = document.createElement('p');
-      channel.className = 'video-channel';
-      channel.textContent = video.channel;
-      info.appendChild(channel);
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'video-title';
+      titleSpan.title = video.title || 'Unknown Title';
+      titleSpan.textContent = video.title || 'Loading...';
+      infoDiv.appendChild(titleSpan);
 
-      card.appendChild(info);
+      const buttonsDiv = document.createElement('div');
+      buttonsDiv.className = 'video-buttons';
 
-      // Open modal on click
-      card.addEventListener('click', () => openVideoModal(video.id));
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'like-btn';
+      likeBtn.textContent = '👍';
+      if (likes[video.id]) likeBtn.classList.add('liked');
+      likeBtn.title = 'Like this video';
+      likeBtn.setAttribute('aria-pressed', likes[video.id] ? 'true' : 'false');
+      likeBtn.addEventListener('click', () => {
+        likes[video.id] = !likes[video.id];
+        saveLikes(likes);
+        likeBtn.classList.toggle('liked');
+        likeBtn.setAttribute('aria-pressed', likes[video.id] ? 'true' : 'false');
+      });
+      buttonsDiv.appendChild(likeBtn);
+
+      const favBtn = document.createElement('button');
+      favBtn.className = 'fav-btn';
+      favBtn.textContent = '⭐';
+      if (favorites.includes(video.id)) favBtn.classList.add('favorited');
+      favBtn.title = 'Add to favorites';
+      favBtn.setAttribute('aria-pressed', favorites.includes(video.id) ? 'true' : 'false');
+      favBtn.addEventListener('click', () => {
+        if(favorites.includes(video.id)) {
+          const idx = favorites.indexOf(video.id);
+          favorites.splice(idx,1);
+          favBtn.classList.remove('favorited');
+          favBtn.setAttribute('aria-pressed', 'false');
+        } else {
+          favorites.push(video.id);
+          favBtn.classList.add('favorited');
+          favBtn.setAttribute('aria-pressed', 'true');
+        }
+        saveFavorites(favorites);
+      });
+      buttonsDiv.appendChild(favBtn);
+
+      infoDiv.appendChild(buttonsDiv);
+      card.appendChild(infoDiv);
 
       videosGrid.appendChild(card);
-    });
+    }
 
     renderPagination(totalPages, page);
   }
 
-  // Render pagination buttons
+  // Pagination buttons
   function renderPagination(totalPages, currentPage) {
     pagination.innerHTML = '';
 
-    if (totalPages <= 1) return;
+    if(totalPages <= 1) return;
 
     const prevBtn = document.createElement('button');
     prevBtn.textContent = 'Previous';
@@ -510,172 +528,4 @@
     prevBtn.onclick = () => renderVideos(currentPage - 1);
     pagination.appendChild(prevBtn);
 
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
-    if (endPage - startPage < 4) {
-      startPage = Math.max(1, endPage - 4);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      const btn = document.createElement('button');
-      btn.textContent = i;
-      btn.className = i === currentPage ? 'active' : '';
-      btn.onclick = () => renderVideos(i);
-      pagination.appendChild(btn);
-    }
-
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Next';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => renderVideos(currentPage + 1);
-    pagination.appendChild(nextBtn);
-  }
-
-  // Open modal with video player and buttons
-  function openVideoModal(videoId) {
-    currentVideo = getAllVideos().find(v => v.id === videoId);
-    if (!currentVideo) return;
-
-    // Embed YouTube iframe player
-    modalVideoContainer.innerHTML = `
-      <iframe class="modal-iframe" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-    `;
-
-    // Update buttons states
-    updateLikeFavoriteButtons();
-
-    modal.classList.add('active');
-  }
-
-  // Close modal
-  modalClose.addEventListener('click', () => {
-    modal.classList.remove('active');
-    modalVideoContainer.innerHTML = '';
-    currentVideo = null;
-  });
-
-  // Like and Favorite state handlers
-  likeBtn.addEventListener('click', () => {
-    if (!currentVideo) return;
-    const likes = loadLikes();
-    const index = likes.indexOf(currentVideo.id);
-    if (index === -1) {
-      likes.push(currentVideo.id);
-      likeBtn.classList.add('liked');
-      likeBtn.textContent = 'Liked 👍';
-    } else {
-      likes.splice(index, 1);
-      likeBtn.classList.remove('liked');
-      likeBtn.textContent = 'Like 👍';
-    }
-    saveLikes(likes);
-  });
-
-  favBtn.addEventListener('click', () => {
-    if (!currentVideo) return;
-    const favorites = loadFavorites();
-    const index = favorites.indexOf(currentVideo.id);
-    if (index === -1) {
-      favorites.push(currentVideo.id);
-      favBtn.textContent = 'Favorited ⭐';
-    } else {
-      favorites.splice(index, 1);
-      favBtn.textContent = 'Add to Favorites ⭐';
-    }
-    saveFavorites(favorites);
-  });
-
-  // Update like/favorite buttons according to localStorage
-  function updateLikeFavoriteButtons() {
-    const likes = loadLikes();
-    const favorites = loadFavorites();
-
-    if (!currentVideo) return;
-
-    if (likes.includes(currentVideo.id)) {
-      likeBtn.classList.add('liked');
-      likeBtn.textContent = 'Liked 👍';
-    } else {
-      likeBtn.classList.remove('liked');
-      likeBtn.textContent = 'Like 👍';
-    }
-    if (favorites.includes(currentVideo.id)) {
-      favBtn.textContent = 'Favorited ⭐';
-    } else {
-      favBtn.textContent = 'Add to Favorites ⭐';
-    }
-  }
-
-  // Add video from URL
-  uploadBtn.addEventListener('click', async () => {
-    const url = videoURLInput.value.trim();
-    if (!url) {
-      alert('Please enter a YouTube video URL.');
-      return;
-    }
-    const videoId = extractYouTubeID(url);
-    if (!videoId) {
-      alert('Invalid YouTube URL.');
-      return;
-    }
-
-    // Check if video already exists
-    const allVideos = getAllVideos();
-    if (allVideos.some(v => v.id === videoId)) {
-      alert('This video is already in the list.');
-      return;
-    }
-
-    // Fetch video info via YouTube oEmbed API
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = 'Adding...';
-    const videoInfo = await fetchVideoInfo(videoId);
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = 'Add Video';
-
-    if (!videoInfo) {
-      alert('Could not fetch video information. Please check the URL.');
-      return;
-    }
-
-    // Save to user videos
-    const userVideos = loadUserVideos();
-    userVideos.push(videoInfo);
-    saveUserVideos(userVideos);
-
-    // Clear input and refresh view
-    videoURLInput.value = '';
-    currentTab = 'uploads';
-    setActiveTab('uploads');
-    renderVideos(1);
-  });
-
-  // Search input event
-  searchInput.addEventListener('input', () => {
-    renderVideos(1);
-  });
-
-  // Tabs click event
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const selectedTab = tab.dataset.tab;
-      if (selectedTab === currentTab) return;
-      currentTab = selectedTab;
-      setActiveTab(selectedTab);
-      renderVideos(1);
-    });
-  });
-
-  function setActiveTab(tabName) {
-    tabs.forEach(t => {
-      t.classList.toggle('active', t.dataset.tab === tabName);
-    });
-    searchInput.value = ''; // clear search on tab change
-  }
-
-  // Initial render
-  renderVideos();
-
-</script>
-</body>
-</html>
+    let startPage = Math.max
