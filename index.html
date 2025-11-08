@@ -1,400 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VideoHub - Watch & Share</title>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #0f0f0f;
-    color: #fff;
-  }
-
-  header {
-    background: #202020;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #ff3c00;
-  }
-  header h1 {
-    font-size: 1.6rem;
-    margin: 0;
-    color: #ff3c00;
-  }
-  .search-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .search-bar input {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: none;
-    width: 220px;
-    font-size: 1rem;
-  }
-  .search-bar button {
-    background: #ff3c00;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 8px 14px;
-  }
-
-  .container {
-    display: flex;
-    height: calc(100vh - 60px);
-  }
-  nav.sidebar {
-    width: 250px;
-    background: #181818;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    border-right: 1px solid #333;
-  }
-  nav.sidebar h2 {
-    font-size: 1.3rem;
-    margin-bottom: 15px;
-    color: #ff3c00;
-  }
-  nav.sidebar button.tab-btn {
-    background: #222;
-    border: none;
-    border-radius: 6px;
-    color: #ccc;
-    padding: 12px 10px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    text-align: left;
-    transition: 0.3s;
-  }
-  nav.sidebar button.tab-btn.active {
-    background: #ff3c00;
-    color: #121212;
-  }
-
-  nav.sidebar .upload-section {
-    margin-top: 30px;
-  }
-  nav.sidebar input[type="url"] {
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    font-size: 1rem;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-  nav.sidebar button#uploadBtn {
-    padding: 10px;
-    background: #ff3c00;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    width: 100%;
-  }
-
-  main.content {
-    flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto;
-    background: #121212;
-  }
-
-  .videos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-  }
-
-  .video-card {
-    background: #1c1c1c;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 0 12px #ff3c0040;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
-  .video-card:hover {
-    transform: scale(1.03);
-  }
-  .video-thumb {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-  }
-  .video-info {
-    padding: 10px;
-  }
-  .video-info h3 {
-    font-size: 1rem;
-    color: #fff;
-    margin: 0;
-    line-height: 1.4;
-  }
-
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-  }
-  .pagination button {
-    background: #222;
-    border: none;
-    color: #ccc;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-  .pagination button.active {
-    background: #ff3c00;
-    color: #121212;
-  }
-
-  /* Modal player */
-  .modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.9);
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-  }
-  .modal-content {
-    position: relative;
-    width: 90%;
-    max-width: 900px;
-  }
-  .modal-content iframe {
-    width: 100%;
-    height: 500px;
-    border: none;
-    border-radius: 8px;
-  }
-  .close-btn {
-    position: absolute;
-    top: -40px;
-    right: 0;
-    background: #ff3c00;
-    border: none;
-    color: white;
-    font-size: 1.1rem;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  @media (max-width: 768px) {
-    .container { flex-direction: column; }
-    nav.sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 10px; }
-    .videos-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
-    .modal-content iframe { height: 300px; }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VideoHub 2.0 - Watch & Upload</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0f0f0f;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+  </style>
 </head>
-<body>
-<header>
-  <h1>🎬 VideoHub</h1>
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search videos..." />
-    <button id="searchBtn">Search</button>
-  </div>
-</header>
+<body class="flex flex-col min-h-screen">
+  <header class="bg-zinc-900 border-b border-zinc-700 py-4 px-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-red-500">VideoHub</h1>
+    <input id="searchInput" type="text" placeholder="Search videos..."
+      class="bg-zinc-800 text-white px-4 py-2 rounded-md w-1/3 outline-none focus:ring-2 focus:ring-red-500">
+  </header>
 
-<div class="container">
-  <nav class="sidebar">
-    <h2>Categories</h2>
-    <button class="tab-btn active" data-tab="all">All</button>
-    <button class="tab-btn" data-tab="music">Music</button>
-    <button class="tab-btn" data-tab="gaming">Gaming</button>
-    <button class="tab-btn" data-tab="tech">Tech</button>
-    <button class="tab-btn" data-tab="news">News</button>
-    <button class="tab-btn" data-tab="uploads">My Uploads</button>
+  <main class="flex flex-1 overflow-hidden">
+    <nav class="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col p-4">
+      <h2 class="text-lg font-semibold text-red-500 mb-4">Menu</h2>
+      <button class="tab-btn bg-zinc-800 hover:bg-red-600 text-left px-4 py-2 mb-2 rounded-md active" data-tab="all">All Videos</button>
+      <button class="tab-btn bg-zinc-800 hover:bg-red-600 text-left px-4 py-2 mb-2 rounded-md" data-tab="uploads">My Uploads</button>
+      <div class="mt-6 border-t border-zinc-700 pt-4">
+        <h3 class="text-sm text-gray-400 mb-2">Add YouTube Video</h3>
+        <input id="videoURL" type="url" placeholder="https://www.youtube.com/watch?v=..."
+          class="bg-zinc-800 text-white px-3 py-2 rounded-md w-full mb-2">
+        <button id="uploadBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md w-full font-semibold">Add Video</button>
+      </div>
+    </nav>
 
-    <div class="upload-section">
-      <input type="url" id="videoURL" placeholder="Paste YouTube link..." />
-      <button id="uploadBtn">Add Video</button>
-    </div>
-  </nav>
-
-  <main class="content">
-    <div class="videos-grid" id="videosGrid"></div>
-    <div class="pagination" id="pagination"></div>
+    <section class="flex-1 overflow-y-auto scrollbar-hide p-6" id="videoSection">
+      <div id="videosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
   </main>
-</div>
 
-<!-- Video Modal -->
-<div class="modal" id="videoModal">
-  <div class="modal-content">
-    <button class="close-btn" id="closeModal">Close ✖</button>
-    <iframe id="videoPlayer" allowfullscreen></iframe>
-  </div>
-</div>
+  <script>
+    const defaultVideos = [
+      { id: "dQw4w9WgXcQ" },
+      { id: "MsXdUtlDVhk" },
+      { id: "tAGnKpE4NCI" },
+      { id: "Zi_XLOBDo_Y" },
+      { id: "V-_O7nl0Ii0" },
+      { id: "3JZ_D3ELwOQ" },
+    ];
 
-<script>
-  const videosGrid = document.getElementById('videosGrid');
-  const videoURLInput = document.getElementById('videoURL');
-  const uploadBtn = document.getElementById('uploadBtn');
-  const pagination = document.getElementById('pagination');
-  const tabs = document.querySelectorAll('.tab-btn');
-  const searchInput = document.getElementById('searchInput');
-  const searchBtn = document.getElementById('searchBtn');
-  const videoModal = document.getElementById('videoModal');
-  const videoPlayer = document.getElementById('videoPlayer');
-  const closeModal = document.getElementById('closeModal');
+    const videosGrid = document.getElementById("videosGrid");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const videoURLInput = document.getElementById("videoURL");
+    const searchInput = document.getElementById("searchInput");
+    const tabs = document.querySelectorAll(".tab-btn");
 
-  const VIDEOS_PER_PAGE = 12;
-  let currentPage = 1;
-  let currentTab = 'all';
-  let searchTerm = '';
+    let currentTab = "all";
+    let allVideosData = {};
 
-  const defaultVideos = [
-    { id: "dQw4w9WgXcQ", category: "music" },
-    { id: "noLL5xy0UnU", category: "music" },
-    { id: "MsXdUtlDVhk", category: "gaming" },
-    { id: "tAGnKpE4NCI", category: "music" },
-    { id: "3JZ_D3ELwOQ", category: "tech" },
-    { id: "Zi_XLOBDo_Y", category: "music" },
-    { id: "V-_O7nl0Ii0", category: "news" },
-    { id: "kXYiU_JCYtU", category: "music" },
-    { id: "eVTXPUF4Oz4", category: "tech" },
-    { id: "fJ9rUzIMcZQ", category: "music" },
-    { id: "hTWKbfoikeg", category: "music" },
-    { id: "2vjPBrBU-TM", category: "music" }
-  ];
+    // ======== Local Storage ========
+    function loadUserVideos() {
+      return JSON.parse(localStorage.getItem("userVideos") || "[]");
+    }
+    function saveUserVideos(videos) {
+      localStorage.setItem("userVideos", JSON.stringify(videos));
+    }
+    function loadLikes() {
+      return JSON.parse(localStorage.getItem("videoLikes") || "{}");
+    }
+    function saveLikes(likes) {
+      localStorage.setItem("videoLikes", JSON.stringify(likes));
+    }
 
-  function loadUserVideos() {
-    return JSON.parse(localStorage.getItem('userVideos') || '[]');
-  }
-  function saveUserVideos(videos) {
-    localStorage.setItem('userVideos', JSON.stringify(videos));
-  }
+    // ======== Fetch YouTube Data ========
+    async function fetchVideoData(videoId) {
+      if (allVideosData[videoId]) return allVideosData[videoId];
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+        if (!res.ok) throw new Error("Video not found");
+        const data = await res.json();
+        allVideosData[videoId] = { title: data.title, thumbnail: data.thumbnail_url };
+        return allVideosData[videoId];
+      } catch {
+        return { title: "Unknown Video", thumbnail: "https://via.placeholder.com/480x270?text=Video+Not+Found" };
+      }
+    }
 
-  async function fetchVideoData(video) {
-    const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`);
-    if (!res.ok) return null;
-    return await res.json();
-  }
+    // ======== Extract YouTube ID ========
+    function extractYouTubeID(url) {
+      const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([\w-]{11})/;
+      const match = url.match(regex);
+      return match ? match[1] : null;
+    }
 
-  async function buildVideoCard(video) {
-    const data = await fetchVideoData(video);
-    if (!data) return null;
-    const card = document.createElement('div');
-    card.className = 'video-card';
-    card.innerHTML = `
-      <img class="video-thumb" src="https://img.youtube.com/vi/${video.id}/hqdefault.jpg" alt="${data.title}">
-      <div class="video-info"><h3>${data.title}</h3></div>
-    `;
-    card.addEventListener('click', () => {
-      openModal(video.id);
+    // ======== Render Videos ========
+    async function renderVideos(filter = "") {
+      videosGrid.innerHTML = "";
+      const userVideos = loadUserVideos();
+      let videos = currentTab === "uploads" ? userVideos : [...defaultVideos, ...userVideos];
+      const likes = loadLikes();
+
+      if (filter.trim()) {
+        const f = filter.toLowerCase();
+        const filtered = [];
+        for (const v of videos) {
+          const data = await fetchVideoData(v.id);
+          if (data.title.toLowerCase().includes(f)) filtered.push(v);
+        }
+        videos = filtered;
+      }
+
+      if (videos.length === 0) {
+        videosGrid.innerHTML = `<p class="text-gray-400 text-center col-span-full">No videos found.</p>`;
+        return;
+      }
+
+      for (const video of videos) {
+        const { title, thumbnail } = await fetchVideoData(video.id);
+        const liked = likes[video.id] || false;
+
+        const card = document.createElement("div");
+        card.className = "bg-zinc-800 rounded-lg overflow-hidden shadow-md hover:shadow-red-500/30 transition-all";
+
+        card.innerHTML = `
+          <div class="relative">
+            <img src="${thumbnail}" alt="${title}" class="w-full h-48 object-cover">
+            <button class="absolute bottom-2 right-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-semibold play-btn">▶ Play</button>
+          </div>
+          <div class="p-3">
+            <h3 class="text-md font-semibold truncate mb-2">${title}</h3>
+            <button class="like-btn flex items-center gap-2 text-sm ${liked ? 'text-red-500' : 'text-gray-400'}">
+              <span>❤️</span> <span>${liked ? 'Liked' : 'Like'}</span>
+            </button>
+          </div>
+        `;
+
+        card.querySelector(".like-btn").addEventListener("click", () => {
+          const likesData = loadLikes();
+          likesData[video.id] = !likesData[video.id];
+          saveLikes(likesData);
+          renderVideos(searchInput.value);
+        });
+
+        card.querySelector(".play-btn").addEventListener("click", () => {
+          const modal = document.createElement("div");
+          modal.className = "fixed inset-0 bg-black/80 flex justify-center items-center z-50";
+          modal.innerHTML = `
+            <div class="bg-zinc-900 p-4 rounded-xl shadow-lg relative max-w-3xl w-full">
+              <iframe class="w-full aspect-video rounded-md" src="https://www.youtube.com/embed/${video.id}" frameborder="0" allowfullscreen></iframe>
+              <button class="absolute top-2 right-2 text-gray-300 hover:text-red-500 text-xl">&times;</button>
+            </div>
+          `;
+          modal.querySelector("button").addEventListener("click", () => modal.remove());
+          document.body.appendChild(modal);
+        });
+
+        videosGrid.appendChild(card);
+      }
+    }
+
+    // ======== Upload Video ========
+    uploadBtn.addEventListener("click", () => {
+      const url = videoURLInput.value.trim();
+      const id = extractYouTubeID(url);
+      if (!id) return alert("Please enter a valid YouTube URL.");
+      const userVideos = loadUserVideos();
+      if (userVideos.some(v => v.id === id) || defaultVideos.some(v => v.id === id)) {
+        alert("This video already exists.");
+        return;
+      }
+      userVideos.push({ id });
+      saveUserVideos(userVideos);
+      videoURLInput.value = "";
+      renderVideos();
     });
-    return card;
-  }
 
-  function getFilteredVideos() {
-    let videos = [...defaultVideos, ...loadUserVideos()];
-    if (currentTab !== 'all' && currentTab !== 'uploads') {
-      videos = videos.filter(v => v.category === currentTab);
-    } else if (currentTab === 'uploads') {
-      videos = loadUserVideos();
-    }
-    if (searchTerm) {
-      videos = videos.filter(v => v.title && v.title.toLowerCase().includes(searchTerm.toLowerCase()));
-    }
-    return videos;
-  }
+    // ======== Tab Navigation ========
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("bg-red-600"));
+        tab.classList.add("bg-red-600");
+        currentTab = tab.dataset.tab;
+        renderVideos(searchInput.value);
+      });
+    });
 
-  async function renderVideos(page = 1) {
-    const videos = getFilteredVideos();
-    const totalPages = Math.ceil(videos.length / VIDEOS_PER_PAGE);
-    currentPage = Math.min(page, totalPages);
+    // ======== Search Input ========
+    searchInput.addEventListener("input", e => renderVideos(e.target.value));
 
-    videosGrid.innerHTML = '';
-    const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
-    const videosToShow = videos.slice(startIndex, startIndex + VIDEOS_PER_PAGE);
-
-    for (const video of videosToShow) {
-      const card = await buildVideoCard(video);
-      if (card) videosGrid.appendChild(card);
-    }
-    renderPagination(totalPages);
-  }
-
-  function renderPagination(totalPages) {
-    pagination.innerHTML = '';
-    if (totalPages <= 1) return;
-    for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement('button');
-      btn.textContent = i;
-      btn.className = i === currentPage ? 'active' : '';
-      btn.onclick = () => renderVideos(i);
-      pagination.appendChild(btn);
-    }
-  }
-
-  function extractYouTubeID(url) {
-    const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
-  }
-
-  uploadBtn.addEventListener('click', async () => {
-    const url = videoURLInput.value.trim();
-    const id = extractYouTubeID(url);
-    if (!id) return alert('Please enter a valid YouTube URL!');
-    const userVideos = loadUserVideos();
-    if (userVideos.some(v => v.id === id) || defaultVideos.some(v => v.id === id)) {
-      return alert('This video is already in the list.');
-    }
-    userVideos.push({ id, category: "uploads" });
-    saveUserVideos(userVideos);
-    videoURLInput.value = '';
+    // ======== Init ========
     renderVideos();
-  });
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentTab = tab.dataset.tab;
-      renderVideos(1);
-    });
-  });
-
-  searchBtn.addEventListener('click', () => {
-    searchTerm = searchInput.value.trim();
-    renderVideos(1);
-  });
-
-  function openModal(videoId) {
-    videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-    videoModal.style.display = 'flex';
-  }
-  closeModal.addEventListener('click', () => {
-    videoPlayer.src = '';
-    videoModal.style.display = 'none';
-  });
-  window.addEventListener('click', e => {
-    if (e.target === videoModal) {
-      videoPlayer.src = '';
-      videoModal.style.display = 'none';
-    }
-  });
-
-  renderVideos();
-</script>
+  </script>
 </body>
 </html>
