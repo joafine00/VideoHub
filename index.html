@@ -53,23 +53,30 @@
   main.content {
     flex-grow: 1; padding: 20px; overflow-y: auto; background: #181818; display: flex; flex-direction: column;
   }
-  .videos-grid {
-    display: grid; grid-template-columns: repeat(auto-fill,minmax(320px,1fr)); gap: 20px;
+  .videos-list {
+    display: flex; flex-direction: column; gap: 15px;
   }
   .video-card {
-    background: #272727; border-radius: 10px; padding: 10px; box-shadow: 0 0 8px #ff3c00cc; display: flex; flex-direction: column; user-select: none;
+    background: #272727; border-radius: 10px; padding: 10px; box-shadow: 0 0 8px #ff3c00cc; display: flex; gap: 12px; align-items: center; user-select: none;
   }
   .video-thumb iframe {
-    border-radius: 8px; width: 100%; height: 180px;
+    border-radius: 8px; width: 160px; height: 90px;
+    flex-shrink: 0;
   }
   .video-info {
-    margin-top: 10px; display: flex; justify-content: space-between; align-items: center;
+    flex-grow: 1; display: flex; flex-direction: column; justify-content: center;
   }
   .video-title {
-    font-weight: 600; font-size: 1rem; flex-grow: 1; margin-right: 10px; color: #fff;
+    font-weight: 600; font-size: 1rem; color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .video-actions {
+    display: flex; gap: 10px; margin-top: 8px;
   }
   .video-actions button {
-    background: #333; border: none; border-radius: 6px; color: #ccc; padding: 6px 12px; cursor: pointer; font-weight: 600; margin-left: 6px; transition: background-color 0.3s ease, color 0.3s ease;
+    background: #333; border: none; border-radius: 6px; color: #ccc; padding: 6px 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background-color 0.3s ease, color 0.3s ease;
+    white-space: nowrap;
   }
   .video-actions button:hover {
     background: #ff3c00; color: #121212;
@@ -102,8 +109,14 @@
     main.content {
       height: auto;
     }
-    .videos-grid {
-      grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+    .video-card {
+      flex-direction: column; align-items: flex-start;
+    }
+    .video-thumb iframe {
+      width: 100%; height: 180px;
+    }
+    .video-actions {
+      margin-top: 12px;
     }
   }
 </style>
@@ -116,7 +129,6 @@
     <button class="tab-btn active" data-tab="all">All</button>
     <button class="tab-btn" data-tab="uploads">Uploads</button>
     <button class="tab-btn" data-tab="favorites">Favorites</button>
-    <button class="tab-btn" data-tab="extras">Extras</button>
 
     <div class="search-section">
       <label for="searchInput">Search Videos</label>
@@ -131,25 +143,18 @@
   </nav>
 
   <main class="content">
-    <div class="videos-grid" id="videosGrid"></div>
-    <div class="pagination" id="pagination" style="margin-top: 20px; display:flex; justify-content:center; gap:8px; user-select:none;"></div>
+    <div class="videos-list" id="videosList"></div>
   </main>
 </div>
 
 <script>
-  const videosGrid = document.getElementById('videosGrid');
-  const pagination = document.getElementById('pagination');
+  const videosList = document.getElementById('videosList');
   const tabs = document.querySelectorAll('nav.sidebar button.tab-btn');
   const searchInput = document.getElementById('searchInput');
   const uploadForm = document.getElementById('uploadForm');
   const videoUrlInput = document.getElementById('videoUrl');
 
-  const VIDEOS_PER_PAGE = 8;
-  let currentPage = 1;
-  let currentTab = 'all';
-  let searchTerm = '';
-
-  // Default videos with IDs only
+  // Default videos
   const defaultVideos = [
     { id: "dQw4w9WgXcQ" },
     { id: "noLL5xy0UnU" },
@@ -211,12 +216,10 @@
     return Promise.all(promises);
   }
 
-  async function renderVideos(page = 1) {
+  async function renderVideos() {
     userVideos = loadUserVideos();
     favorites = loadFavorites();
     likes = loadLikes();
-
-    currentPage = page;
 
     // Select videos according to tab
     let combinedVideos = [];
@@ -226,9 +229,6 @@
         break;
       case 'favorites':
         combinedVideos = [...defaultVideos, ...userVideos].filter(v => favorites.includes(v.id));
-        break;
-      case 'extras':
-        combinedVideos = []; // Add extras if needed
         break;
       case 'all':
       default:
@@ -242,24 +242,13 @@
     // Filter by search
     const filtered = videosWithTitles.filter(v => v.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const totalVideos = filtered.length;
-    const totalPages = Math.ceil(totalVideos / VIDEOS_PER_PAGE);
-
-    if (currentPage > totalPages) currentPage = totalPages || 1;
-    if (currentPage < 1) currentPage = 1;
-
-    videosGrid.innerHTML = '';
-    if (totalVideos === 0) {
-      videosGrid.innerHTML = `<p style="color:#ff3c00; font-weight:bold; grid-column:1/-1; text-align:center;">No videos found.</p>`;
-      pagination.innerHTML = '';
+    videosList.innerHTML = '';
+    if (filtered.length === 0) {
+      videosList.innerHTML = `<p style="color:#ff3c00; font-weight:bold; text-align:center;">No videos found.</p>`;
       return;
     }
 
-    const start = (currentPage -1) * VIDEOS_PER_PAGE;
-    const end = start + VIDEOS_PER_PAGE;
-    const toShow = filtered.slice(start, end);
-
-    toShow.forEach(video => {
+    filtered.forEach(video => {
       const card = document.createElement('div');
       card.className = 'video-card';
 
@@ -298,7 +287,7 @@
           likes[video.id] = 1;
         }
         saveLikes();
-        renderVideos(currentPage);
+        renderVideos();
       });
 
       // Favorite button
@@ -314,7 +303,7 @@
           favorites.push(video.id);
         }
         saveFavorites();
-        renderVideos(currentPage);
+        renderVideos();
       });
 
       actions.appendChild(likeBtn);
@@ -326,40 +315,8 @@
       card.appendChild(thumb);
       card.appendChild(info);
 
-      videosGrid.appendChild(card);
+      videosList.appendChild(card);
     });
-
-    renderPagination(totalPages, currentPage);
-  }
-
-  function renderPagination(totalPages, currentPage) {
-    pagination.innerHTML = '';
-    if (totalPages <= 1) return;
-
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = 'Previous';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => renderVideos(currentPage - 1);
-    pagination.appendChild(prevBtn);
-
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
-    if (endPage - startPage < 4) {
-      startPage = Math.max(1, endPage - 4);
-    }
-    for (let i = startPage; i <= endPage; i++) {
-      const btn = document.createElement('button');
-      btn.textContent = i;
-      btn.className = i === currentPage ? 'active' : '';
-      btn.onclick = () => renderVideos(i);
-      pagination.appendChild(btn);
-    }
-
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Next';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => renderVideos(currentPage + 1);
-    pagination.appendChild(nextBtn);
   }
 
   // Search handler with debounce
@@ -368,7 +325,6 @@
     clearTimeout(debounceTimeout);
     debounceTimeout = setTimeout(() => {
       searchTerm = searchInput.value.trim();
-      currentPage = 1;
       renderVideos();
     }, 300);
   });
@@ -379,7 +335,6 @@
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentTab = tab.dataset.tab;
-      currentPage = 1;
       searchTerm = '';
       searchInput.value = '';
       renderVideos();
@@ -421,15 +376,18 @@
     alert(`Video added: ${title}`);
     videoUrlInput.value = '';
 
-    // Refresh videos, switch to uploads tab
+    // Switch to uploads tab and re-render
     currentTab = 'uploads';
     tabs.forEach(t => t.classList.remove('active'));
     document.querySelector('button[data-tab="uploads"]').classList.add('active');
     searchTerm = '';
     searchInput.value = '';
-    currentPage = 1;
     renderVideos();
   });
+
+  // Initialize currentTab and searchTerm
+  let currentTab = 'all';
+  let searchTerm = '';
 
   // Initial render
   renderVideos();
