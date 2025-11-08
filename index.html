@@ -125,7 +125,7 @@
     display: flex;
     gap: 8px;
   }
-  button.like-btn, button.fav-btn {
+  button.like-btn, button.fav-btn, button.share-btn {
     border: none;
     border-radius: 6px;
     padding: 6px 10px;
@@ -136,16 +136,14 @@
     background-color: #444;
     transition: background-color 0.3s ease;
   }
-  button.like-btn.liked {
-    background-color: #ff3c00;
-    color: #121212;
-  }
+  button.like-btn.liked,
   button.fav-btn.favorited {
     background-color: #ff3c00;
     color: #121212;
   }
   button.like-btn:hover:not(.liked),
-  button.fav-btn:hover:not(.favorited) {
+  button.fav-btn:hover:not(.favorited),
+  button.share-btn:hover {
     background-color: #e63600;
   }
   .pagination {
@@ -500,6 +498,22 @@
       });
       buttonsDiv.appendChild(favBtn);
 
+      // Share button
+      const shareBtn = document.createElement('button');
+      shareBtn.className = 'share-btn';
+      shareBtn.textContent = 'Share';
+      shareBtn.title = 'Share this video';
+      shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const shareUrl = `${window.location.origin}${window.location.pathname}?video=${video.id}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          alert('Link copied!');
+        }).catch(() => {
+          alert('Failed to copy link.');
+        });
+      });
+      buttonsDiv.appendChild(shareBtn);
+
       infoDiv.appendChild(buttonsDiv);
       card.appendChild(infoDiv);
 
@@ -520,11 +534,20 @@
     prevBtn.onclick = () => renderVideos(currentPage - 1);
     pagination.appendChild(prevBtn);
 
-    // Show page numbers with current active
-    for(let i=1; i<=totalPages; i++) {
+    // Show page numbers with max 5 visible
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    if(endPage - startPage < maxPagesToShow - 1) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    for(let i = startPage; i <= endPage; i++) {
       const pageBtn = document.createElement('button');
       pageBtn.textContent = i;
-      pageBtn.className = i === currentPage ? 'active' : '';
+      if(i === currentPage) {
+        pageBtn.classList.add('active');
+        pageBtn.disabled = true;
+      }
       pageBtn.onclick = () => renderVideos(i);
       pagination.appendChild(pageBtn);
     }
@@ -536,36 +559,30 @@
     pagination.appendChild(nextBtn);
   }
 
-  // Modal open/close
+  // Open modal with video
   function openModal(videoId) {
     currentVideoId = videoId;
-    modalIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+    modalIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
     videoModal.classList.add('active');
     videoModal.setAttribute('aria-hidden', 'false');
     updateModalButtons();
-    modalCloseBtn.focus();
+    history.replaceState(null, '', `${window.location.pathname}?video=${videoId}`);
   }
+
+  // Close modal
   function closeModal() {
+    currentVideoId = null;
     modalIframe.src = '';
     videoModal.classList.remove('active');
     videoModal.setAttribute('aria-hidden', 'true');
-    currentVideoId = null;
+    history.replaceState(null, '', window.location.pathname);
   }
-  modalCloseBtn.addEventListener('click', closeModal);
-  videoModal.addEventListener('click', e => {
-    if(e.target === videoModal) closeModal();
-  });
-  document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && videoModal.classList.contains('active')) {
-      closeModal();
-    }
-  });
 
-  // Update like and favorite button states in modal
+  // Update modal like/fav buttons states
   function updateModalButtons() {
-    if(!currentVideoId) return;
     const likes = loadLikes();
     const favorites = loadFavorites();
+    if(!currentVideoId) return;
 
     if(likes[currentVideoId]) {
       modalLikeBtn.classList.add('liked');
@@ -574,6 +591,7 @@
       modalLikeBtn.classList.remove('liked');
       modalLikeBtn.setAttribute('aria-pressed', 'false');
     }
+
     if(favorites.includes(currentVideoId)) {
       modalFavBtn.classList.add('favorited');
       modalFavBtn.setAttribute('aria-pressed', 'true');
@@ -583,47 +601,67 @@
     }
   }
 
-  // Modal like/favorite button events
+  // Modal buttons event listeners
   modalLikeBtn.addEventListener('click', () => {
-    if(!currentVideoId) return;
     const likes = loadLikes();
-    likes[currentVideoId] = !likes[currentVideoId];
-    saveLikes(likes);
-    updateModalButtons();
-    renderVideos(currentPage);
-  });
-  modalFavBtn.addEventListener('click', () => {
-    if(!currentVideoId) return;
-    const favorites = loadFavorites();
-    const idx = favorites.indexOf(currentVideoId);
-    if(idx !== -1) favorites.splice(idx, 1);
-    else favorites.push(currentVideoId);
-    saveFavorites(favorites);
-    updateModalButtons();
-    renderVideos(currentPage);
+    if(currentVideoId) {
+      likes[currentVideoId] = !likes[currentVideoId];
+      saveLikes(likes);
+      updateModalButtons();
+      renderVideos(currentPage);
+    }
   });
 
-  // Tab switching
+  modalFavBtn.addEventListener('click', () => {
+    const favorites = loadFavorites();
+    if(currentVideoId) {
+      if(favorites.includes(currentVideoId)) {
+        const idx = favorites.indexOf(currentVideoId);
+        favorites.splice(idx,1);
+      } else {
+        favorites.push(currentVideoId);
+      }
+      saveFavorites(favorites);
+      updateModalButtons();
+      renderVideos(currentPage);
+    }
+  });
+
+  modalCloseBtn.addEventListener('click', closeModal);
+
+  // Close modal on outside click or ESC key
+  videoModal.addEventListener('click', (e) => {
+    if(e.target === videoModal) closeModal();
+  });
+  window.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && videoModal.classList.contains('active')) closeModal();
+  });
+
+  // Tabs switching
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      if(tab.dataset.tab === currentTab) return;
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentTab = tab.dataset.tab;
       currentPage = 1;
-      renderVideos(currentPage);
+      renderVideos();
     });
   });
 
   // Search input
   searchInput.addEventListener('input', () => {
     currentPage = 1;
-    renderVideos(currentPage);
+    renderVideos();
   });
 
-  // Initial render
-  renderVideos();
-
+  // On load: if url has video param, open modal
+  window.addEventListener('load', () => {
+    renderVideos().then(() => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const videoIdParam = urlParams.get('video');
+      if(videoIdParam) openModal(videoIdParam);
+    });
+  });
 </script>
 </body>
 </html>
