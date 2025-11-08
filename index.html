@@ -5,137 +5,81 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>VideoHub - Watch & Enjoy</title>
 <style>
-  /* Basic Reset */
+  /* Reset and base */
   * {
     box-sizing: border-box;
   }
   body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #121212;
-    color: #eee;
-    cursor: default;
+    margin: 0; background: #121212; color: #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
   header {
-    background: #1f1f1f;
-    padding: 15px 20px;
-    font-size: 1.8rem;
-    font-weight: bold;
-    text-align: center;
-    border-bottom: 3px solid #ff3c00;
+    background: #1f1f1f; padding: 15px 20px; font-size: 1.8rem; font-weight: bold; text-align: center; border-bottom: 3px solid #ff3c00;
   }
   .container {
-    display: flex;
-    height: calc(100vh - 70px);
+    display: flex; height: calc(100vh - 70px);
   }
   nav.sidebar {
-    width: 240px;
-    background: #222;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    gap: 15px;
+    width: 280px; background: #222; display: flex; flex-direction: column; padding: 20px; gap: 15px;
   }
   nav.sidebar h2 {
-    font-size: 1.4rem;
-    color: #ff3c00;
-    user-select: none;
-    margin-bottom: 10px;
+    font-size: 1.4rem; color: #ff3c00; user-select: none; margin-bottom: 10px;
   }
   nav.sidebar button.tab-btn {
-    background: #333;
-    border: none;
-    border-radius: 6px;
-    color: #ccc;
-    padding: 12px 10px;
-    cursor: pointer;
-    font-weight: 600;
-    text-align: left;
-    transition: background-color 0.3s ease;
+    background: #333; border: none; border-radius: 6px; color: #ccc; padding: 12px 10px; cursor: pointer; font-weight: 600; text-align: left; transition: background-color 0.3s ease;
   }
   nav.sidebar button.tab-btn.active,
   nav.sidebar button.tab-btn:hover {
-    background: #ff3c00;
-    color: #121212;
-    font-weight: bold;
+    background: #ff3c00; color: #121212; font-weight: bold;
   }
   nav.sidebar .search-section {
     margin-top: 20px;
   }
   nav.sidebar label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 1rem;
+    display: block; margin-bottom: 6px; font-size: 1rem;
   }
-  nav.sidebar input[type="search"] {
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    font-size: 1rem;
-    width: 100%;
-    background: #333;
-    color: #eee;
+  nav.sidebar input[type="search"],
+  nav.sidebar input[type="url"] {
+    padding: 8px; border-radius: 6px; border: none; font-size: 1rem; width: 100%; background: #333; color: #eee;
+  }
+  nav.sidebar form {
+    margin-top: 15px;
+  }
+  nav.sidebar button.upload-btn {
+    margin-top: 10px; background: #ff3c00; border: none; padding: 10px; border-radius: 6px; color: #121212; font-weight: bold; cursor: pointer; width: 100%; transition: background-color 0.3s ease;
+  }
+  nav.sidebar button.upload-btn:hover {
+    background: #ff6a33;
   }
   main.content {
-    flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto;
-    background: #181818;
-    display: flex;
-    flex-direction: column;
+    flex-grow: 1; padding: 20px; overflow-y: auto; background: #181818; display: flex; flex-direction: column;
   }
   .videos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(320px,1fr));
-    gap: 20px;
+    display: grid; grid-template-columns: repeat(auto-fill,minmax(320px,1fr)); gap: 20px;
   }
   .video-card {
-    background: #272727;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 0 8px #ff3c00cc;
-    display: flex;
-    flex-direction: column;
-    user-select: none;
+    background: #272727; border-radius: 10px; padding: 10px; box-shadow: 0 0 8px #ff3c00cc; display: flex; flex-direction: column; user-select: none;
   }
   .video-thumb iframe {
-    border-radius: 8px;
-    width: 100%;
-    height: 180px;
+    border-radius: 8px; width: 100%; height: 180px;
   }
   .video-info {
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    margin-top: 10px; display: flex; justify-content: space-between; align-items: center;
   }
   .video-title {
-    font-weight: 600;
-    font-size: 1rem;
-    flex-grow: 1;
-    margin-right: 10px;
-    color: #fff;
+    font-weight: 600; font-size: 1rem; flex-grow: 1; margin-right: 10px; color: #fff;
   }
   .video-actions button {
-    background: #333;
-    border: none;
-    border-radius: 6px;
-    color: #ccc;
-    padding: 6px 12px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-left: 6px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    background: #333; border: none; border-radius: 6px; color: #ccc; padding: 6px 12px; cursor: pointer; font-weight: 600; margin-left: 6px; transition: background-color 0.3s ease, color 0.3s ease;
   }
   .video-actions button:hover {
-    background: #ff3c00;
-    color: #121212;
+    background: #ff3c00; color: #121212;
   }
   .video-actions button.liked {
-    background: #ff3c00;
-    color: #121212;
+    background: #ff3c00; color: #121212;
   }
-  /* Scrollbar styling */
+  .video-actions button.favorited {
+    background: gold; color: #121212;
+  }
   main.content::-webkit-scrollbar {
     width: 10px;
   }
@@ -143,24 +87,17 @@
     background: #222;
   }
   main.content::-webkit-scrollbar-thumb {
-    background-color: #ff3c00;
-    border-radius: 10px;
+    background-color: #ff3c00; border-radius: 10px;
   }
-  /* Responsive */
   @media (max-width: 768px) {
     .container {
       flex-direction: column;
     }
     nav.sidebar {
-      width: 100%;
-      flex-direction: row;
-      overflow-x: auto;
-      padding: 10px;
-      gap: 10px;
+      width: 100%; flex-direction: row; overflow-x: auto; padding: 10px; gap: 10px;
     }
     nav.sidebar > * {
-      margin-right: 20px;
-      flex-shrink: 0;
+      margin-right: 20px; flex-shrink: 0;
     }
     main.content {
       height: auto;
@@ -185,7 +122,14 @@
       <label for="searchInput">Search Videos</label>
       <input type="search" id="searchInput" placeholder="Type to search..." autocomplete="off" />
     </div>
+
+    <form id="uploadForm" title="Add a YouTube Video by Link">
+      <label for="videoUrl">Add Video (YouTube URL):</label>
+      <input type="url" id="videoUrl" placeholder="https://www.youtube.com/watch?v=VIDEO_ID" required pattern="https?://(www\.)?youtube\.com/watch\?v=[\w-]{11}" />
+      <button type="submit" class="upload-btn">Add Video</button>
+    </form>
   </nav>
+
   <main class="content">
     <div class="videos-grid" id="videosGrid"></div>
     <div class="pagination" id="pagination" style="margin-top: 20px; display:flex; justify-content:center; gap:8px; user-select:none;"></div>
@@ -193,18 +137,19 @@
 </div>
 
 <script>
-  // Variables
   const videosGrid = document.getElementById('videosGrid');
   const pagination = document.getElementById('pagination');
   const tabs = document.querySelectorAll('nav.sidebar button.tab-btn');
   const searchInput = document.getElementById('searchInput');
+  const uploadForm = document.getElementById('uploadForm');
+  const videoUrlInput = document.getElementById('videoUrl');
 
-  const VIDEOS_PER_PAGE = 8; // More videos per page as requested
+  const VIDEOS_PER_PAGE = 8;
   let currentPage = 1;
   let currentTab = 'all';
   let searchTerm = '';
 
-  // Default videos - only IDs, titles will be fetched from YouTube
+  // Default videos with IDs only
   const defaultVideos = [
     { id: "dQw4w9WgXcQ" },
     { id: "noLL5xy0UnU" },
@@ -216,7 +161,7 @@
     { id: "V-_O7nl0Ii0" }
   ];
 
-  // Load user videos, favorites and likes from localStorage
+  // LocalStorage helpers
   function loadUserVideos() {
     return JSON.parse(localStorage.getItem('userVideos') || '[]');
   }
@@ -253,10 +198,11 @@
     }
   }
 
-  // Fetch titles for all videos (cache to avoid multiple calls)
+  // Cache for titles
   const titleCache = {};
+
   async function fetchTitles(videos) {
-    const promises = videos.map(async (v) => {
+    const promises = videos.map(async v => {
       if (!titleCache[v.id]) {
         titleCache[v.id] = await fetchTitle(v.id);
       }
@@ -265,7 +211,6 @@
     return Promise.all(promises);
   }
 
-  // Filtering and rendering videos
   async function renderVideos(page = 1) {
     userVideos = loadUserVideos();
     favorites = loadFavorites();
@@ -273,7 +218,7 @@
 
     currentPage = page;
 
-    // Combine videos based on tab
+    // Select videos according to tab
     let combinedVideos = [];
     switch (currentTab) {
       case 'uploads':
@@ -283,7 +228,7 @@
         combinedVideos = [...defaultVideos, ...userVideos].filter(v => favorites.includes(v.id));
         break;
       case 'extras':
-        combinedVideos = []; // You can add extras here
+        combinedVideos = []; // Add extras if needed
         break;
       case 'all':
       default:
@@ -291,41 +236,38 @@
         break;
     }
 
-    // Fetch titles for combined videos
+    // Fetch titles
     const videosWithTitles = await fetchTitles(combinedVideos);
 
-    // Filter by search term (partial match)
-    const filteredVideos = videosWithTitles.filter(v =>
-      v.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter by search
+    const filtered = videosWithTitles.filter(v => v.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const totalVideos = filteredVideos.length;
+    const totalVideos = filtered.length;
     const totalPages = Math.ceil(totalVideos / VIDEOS_PER_PAGE);
 
     if (currentPage > totalPages) currentPage = totalPages || 1;
     if (currentPage < 1) currentPage = 1;
 
     videosGrid.innerHTML = '';
-
     if (totalVideos === 0) {
       videosGrid.innerHTML = `<p style="color:#ff3c00; font-weight:bold; grid-column:1/-1; text-align:center;">No videos found.</p>`;
       pagination.innerHTML = '';
       return;
     }
 
-    const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
-    const endIndex = startIndex + VIDEOS_PER_PAGE;
-    const videosToShow = filteredVideos.slice(startIndex, endIndex);
+    const start = (currentPage -1) * VIDEOS_PER_PAGE;
+    const end = start + VIDEOS_PER_PAGE;
+    const toShow = filtered.slice(start, end);
 
-    videosToShow.forEach(video => {
+    toShow.forEach(video => {
       const card = document.createElement('div');
       card.className = 'video-card';
 
       const thumb = document.createElement('div');
       thumb.className = 'video-thumb';
       thumb.innerHTML = `
-        <iframe 
-          src="https://www.youtube.com/embed/${video.id}" 
+        <iframe
+          src="https://www.youtube.com/embed/${video.id}"
           title="${video.title}"
           allowfullscreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -343,11 +285,12 @@
       const actions = document.createElement('div');
       actions.className = 'video-actions';
 
+      // Like button
       const likeBtn = document.createElement('button');
-      likeBtn.className = 'like-btn';
-      if (likes[video.id]) likeBtn.classList.add('liked');
-      likeBtn.innerHTML = `&#10084; ${likes[video.id] ? 1 : 0}`;
-      likeBtn.title = 'Like';
+      const liked = !!likes[video.id];
+      likeBtn.textContent = liked ? '👍 Unlike' : '👍 Like';
+      likeBtn.className = liked ? 'liked' : '';
+      likeBtn.title = liked ? 'Remove your like' : 'Like this video';
       likeBtn.addEventListener('click', () => {
         if (likes[video.id]) {
           delete likes[video.id];
@@ -358,15 +301,14 @@
         renderVideos(currentPage);
       });
 
+      // Favorite button
       const favBtn = document.createElement('button');
-      if (favorites.includes(video.id)) {
-        favBtn.textContent = 'Remove Favorite';
-      } else {
-        favBtn.textContent = 'Add Favorite';
-      }
-      favBtn.title = 'Toggle Favorite';
+      const isFav = favorites.includes(video.id);
+      favBtn.textContent = isFav ? '⭐ Remove Favorite' : '⭐ Add to Favorites';
+      favBtn.className = isFav ? 'favorited' : '';
+      favBtn.title = isFav ? 'Remove from favorites' : 'Add to favorites';
       favBtn.addEventListener('click', () => {
-        if (favorites.includes(video.id)) {
+        if (isFav) {
           favorites = favorites.filter(id => id !== video.id);
         } else {
           favorites.push(video.id);
@@ -390,10 +332,8 @@
     renderPagination(totalPages, currentPage);
   }
 
-  // Pagination buttons
   function renderPagination(totalPages, currentPage) {
     pagination.innerHTML = '';
-
     if (totalPages <= 1) return;
 
     const prevBtn = document.createElement('button');
@@ -402,7 +342,6 @@
     prevBtn.onclick = () => renderVideos(currentPage - 1);
     pagination.appendChild(prevBtn);
 
-    // Show up to 5 page numbers
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
     if (endPage - startPage < 4) {
@@ -423,7 +362,7 @@
     pagination.appendChild(nextBtn);
   }
 
-  // Search input handler (with debounce)
+  // Search handler with debounce
   let debounceTimeout;
   searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimeout);
@@ -434,7 +373,7 @@
     }, 300);
   });
 
-  // Tab click handlers
+  // Tab buttons handler
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
@@ -445,6 +384,51 @@
       searchInput.value = '';
       renderVideos();
     });
+  });
+
+  // Upload form handler (adding new YouTube video by URL)
+  uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const url = videoUrlInput.value.trim();
+
+    // Extract video ID from URL
+    const videoIdMatch = url.match(/v=([\w-]{11})/);
+    if (!videoIdMatch) {
+      alert('Invalid YouTube URL. Please use the full URL, e.g., https://www.youtube.com/watch?v=VIDEO_ID');
+      return;
+    }
+    const videoId = videoIdMatch[1];
+
+    // Check if video already exists in uploads
+    if (userVideos.some(v => v.id === videoId)) {
+      alert('This video is already uploaded.');
+      videoUrlInput.value = '';
+      return;
+    }
+
+    // Optionally check if video is valid by fetching title
+    const title = await fetchTitle(videoId);
+    if (title === 'Unknown Title') {
+      alert('Could not find video. Please check the URL.');
+      return;
+    }
+
+    // Add new video to user uploads
+    userVideos.push({ id: videoId, category: 'uploads' });
+    saveUserVideos(userVideos);
+
+    alert(`Video added: ${title}`);
+    videoUrlInput.value = '';
+
+    // Refresh videos, switch to uploads tab
+    currentTab = 'uploads';
+    tabs.forEach(t => t.classList.remove('active'));
+    document.querySelector('button[data-tab="uploads"]').classList.add('active');
+    searchTerm = '';
+    searchInput.value = '';
+    currentPage = 1;
+    renderVideos();
   });
 
   // Initial render
