@@ -552,26 +552,38 @@
     currentVideoId = null;
   }
   modalCloseBtn.addEventListener('click', closeModal);
-  videoModal.addEventListener('click', (e) => {
+  videoModal.addEventListener('click', e => {
     if(e.target === videoModal) closeModal();
   });
-  window.addEventListener('keydown', e => {
+  document.addEventListener('keydown', e => {
     if(e.key === 'Escape' && videoModal.classList.contains('active')) {
       closeModal();
     }
   });
 
-  // Update modal like/fav buttons states
+  // Update like and favorite button states in modal
   function updateModalButtons() {
     if(!currentVideoId) return;
     const likes = loadLikes();
     const favorites = loadFavorites();
-    modalLikeBtn.classList.toggle('liked', !!likes[currentVideoId]);
-    modalFavBtn.classList.toggle('favorited', favorites.includes(currentVideoId));
-    modalLikeBtn.setAttribute('aria-pressed', !!likes[currentVideoId] ? 'true' : 'false');
-    modalFavBtn.setAttribute('aria-pressed', favorites.includes(currentVideoId) ? 'true' : 'false');
+
+    if(likes[currentVideoId]) {
+      modalLikeBtn.classList.add('liked');
+      modalLikeBtn.setAttribute('aria-pressed', 'true');
+    } else {
+      modalLikeBtn.classList.remove('liked');
+      modalLikeBtn.setAttribute('aria-pressed', 'false');
+    }
+    if(favorites.includes(currentVideoId)) {
+      modalFavBtn.classList.add('favorited');
+      modalFavBtn.setAttribute('aria-pressed', 'true');
+    } else {
+      modalFavBtn.classList.remove('favorited');
+      modalFavBtn.setAttribute('aria-pressed', 'false');
+    }
   }
 
+  // Modal like/favorite button events
   modalLikeBtn.addEventListener('click', () => {
     if(!currentVideoId) return;
     const likes = loadLikes();
@@ -580,47 +592,38 @@
     updateModalButtons();
     renderVideos(currentPage);
   });
-
   modalFavBtn.addEventListener('click', () => {
     if(!currentVideoId) return;
     const favorites = loadFavorites();
-    if(favorites.includes(currentVideoId)) {
-      const idx = favorites.indexOf(currentVideoId);
-      favorites.splice(idx,1);
-    } else {
-      favorites.push(currentVideoId);
-    }
+    const idx = favorites.indexOf(currentVideoId);
+    if(idx !== -1) favorites.splice(idx, 1);
+    else favorites.push(currentVideoId);
     saveFavorites(favorites);
     updateModalButtons();
     renderVideos(currentPage);
   });
 
-  // Search input debounce
-  let searchTimeout = null;
-  searchInput.addEventListener('input', () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      currentPage = 1;
-      renderVideos(currentPage);
-    }, 400);
-  });
-
-  // Tab buttons events
-  tabs.forEach(btn => {
-    btn.addEventListener('click', () => {
-      if(btn.dataset.tab === currentTab) return;
-      currentTab = btn.dataset.tab;
-      tabs.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+  // Tab switching
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      if(tab.dataset.tab === currentTab) return;
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentTab = tab.dataset.tab;
       currentPage = 1;
       renderVideos(currentPage);
     });
   });
 
-  // On load
-  window.addEventListener('DOMContentLoaded', () => {
+  // Search input
+  searchInput.addEventListener('input', () => {
+    currentPage = 1;
     renderVideos(currentPage);
   });
+
+  // Initial render
+  renderVideos();
+
 </script>
 </body>
 </html>
