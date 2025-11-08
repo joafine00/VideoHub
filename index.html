@@ -5,15 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>VideoHub - Watch & Share</title>
 <style>
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #0f0f0f;
-    color: #eee;
+    color: #fff;
   }
+
   header {
     background: #202020;
     padding: 15px 20px;
@@ -54,15 +53,16 @@
     height: calc(100vh - 60px);
   }
   nav.sidebar {
-    width: 240px;
+    width: 250px;
     background: #181818;
     display: flex;
     flex-direction: column;
     padding: 20px;
+    border-right: 1px solid #333;
   }
   nav.sidebar h2 {
     font-size: 1.3rem;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #ff3c00;
   }
   nav.sidebar button.tab-btn {
@@ -71,7 +71,7 @@
     border-radius: 6px;
     color: #ccc;
     padding: 12px 10px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     cursor: pointer;
     font-weight: 600;
     text-align: left;
@@ -81,13 +81,9 @@
     background: #ff3c00;
     color: #121212;
   }
+
   nav.sidebar .upload-section {
     margin-top: 30px;
-  }
-  nav.sidebar label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.9rem;
   }
   nav.sidebar input[type="url"] {
     padding: 8px;
@@ -105,11 +101,7 @@
     color: white;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
     width: 100%;
-  }
-  nav.sidebar button#uploadBtn:hover {
-    background: #e63600;
   }
 
   main.content {
@@ -130,6 +122,7 @@
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 12px #ff3c0040;
+    cursor: pointer;
     transition: transform 0.2s ease;
   }
   .video-card:hover {
@@ -170,19 +163,45 @@
     color: #121212;
   }
 
+  /* Modal player */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  .modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 900px;
+  }
+  .modal-content iframe {
+    width: 100%;
+    height: 500px;
+    border: none;
+    border-radius: 8px;
+  }
+  .close-btn {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: #ff3c00;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
   @media (max-width: 768px) {
-    .container {
-      flex-direction: column;
-    }
-    nav.sidebar {
-      width: 100%;
-      flex-direction: row;
-      overflow-x: auto;
-      padding: 10px;
-    }
-    .videos-grid {
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    }
+    .container { flex-direction: column; }
+    nav.sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 10px; }
+    .videos-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+    .modal-content iframe { height: 300px; }
   }
 </style>
 </head>
@@ -194,22 +213,35 @@
     <button id="searchBtn">Search</button>
   </div>
 </header>
+
 <div class="container">
   <nav class="sidebar">
     <h2>Categories</h2>
     <button class="tab-btn active" data-tab="all">All</button>
+    <button class="tab-btn" data-tab="music">Music</button>
+    <button class="tab-btn" data-tab="gaming">Gaming</button>
+    <button class="tab-btn" data-tab="tech">Tech</button>
+    <button class="tab-btn" data-tab="news">News</button>
     <button class="tab-btn" data-tab="uploads">My Uploads</button>
 
     <div class="upload-section">
-      <label for="videoURL">Add YouTube Video ⬆️</label>
-      <input type="url" id="videoURL" placeholder="https://www.youtube.com/watch?v=..." />
+      <input type="url" id="videoURL" placeholder="Paste YouTube link..." />
       <button id="uploadBtn">Add Video</button>
     </div>
   </nav>
+
   <main class="content">
     <div class="videos-grid" id="videosGrid"></div>
     <div class="pagination" id="pagination"></div>
   </main>
+</div>
+
+<!-- Video Modal -->
+<div class="modal" id="videoModal">
+  <div class="modal-content">
+    <button class="close-btn" id="closeModal">Close ✖</button>
+    <iframe id="videoPlayer" allowfullscreen></iframe>
+  </div>
 </div>
 
 <script>
@@ -220,6 +252,9 @@
   const tabs = document.querySelectorAll('.tab-btn');
   const searchInput = document.getElementById('searchInput');
   const searchBtn = document.getElementById('searchBtn');
+  const videoModal = document.getElementById('videoModal');
+  const videoPlayer = document.getElementById('videoPlayer');
+  const closeModal = document.getElementById('closeModal');
 
   const VIDEOS_PER_PAGE = 12;
   let currentPage = 1;
@@ -227,18 +262,18 @@
   let searchTerm = '';
 
   const defaultVideos = [
-    { id: "dQw4w9WgXcQ" },
-    { id: "noLL5xy0UnU" },
-    { id: "MsXdUtlDVhk" },
-    { id: "tAGnKpE4NCI" },
-    { id: "3JZ_D3ELwOQ" },
-    { id: "Zi_XLOBDo_Y" },
-    { id: "V-_O7nl0Ii0" },
-    { id: "kXYiU_JCYtU" },
-    { id: "eVTXPUF4Oz4" },
-    { id: "fJ9rUzIMcZQ" },
-    { id: "hTWKbfoikeg" },
-    { id: "2vjPBrBU-TM" }
+    { id: "dQw4w9WgXcQ", category: "music" },
+    { id: "noLL5xy0UnU", category: "music" },
+    { id: "MsXdUtlDVhk", category: "gaming" },
+    { id: "tAGnKpE4NCI", category: "music" },
+    { id: "3JZ_D3ELwOQ", category: "tech" },
+    { id: "Zi_XLOBDo_Y", category: "music" },
+    { id: "V-_O7nl0Ii0", category: "news" },
+    { id: "kXYiU_JCYtU", category: "music" },
+    { id: "eVTXPUF4Oz4", category: "tech" },
+    { id: "fJ9rUzIMcZQ", category: "music" },
+    { id: "hTWKbfoikeg", category: "music" },
+    { id: "2vjPBrBU-TM", category: "music" }
   ];
 
   function loadUserVideos() {
@@ -257,22 +292,23 @@
   async function buildVideoCard(video) {
     const data = await fetchVideoData(video);
     if (!data) return null;
-
     const card = document.createElement('div');
     card.className = 'video-card';
     card.innerHTML = `
       <img class="video-thumb" src="https://img.youtube.com/vi/${video.id}/hqdefault.jpg" alt="${data.title}">
-      <div class="video-info">
-        <h3>${data.title}</h3>
-      </div>
+      <div class="video-info"><h3>${data.title}</h3></div>
     `;
-    card.onclick = () => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank');
+    card.addEventListener('click', () => {
+      openModal(video.id);
+    });
     return card;
   }
 
   function getFilteredVideos() {
     let videos = [...defaultVideos, ...loadUserVideos()];
-    if (currentTab === 'uploads') {
+    if (currentTab !== 'all' && currentTab !== 'uploads') {
+      videos = videos.filter(v => v.category === currentTab);
+    } else if (currentTab === 'uploads') {
       videos = loadUserVideos();
     }
     if (searchTerm) {
@@ -288,8 +324,7 @@
 
     videosGrid.innerHTML = '';
     const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
-    const endIndex = startIndex + VIDEOS_PER_PAGE;
-    const videosToShow = videos.slice(startIndex, endIndex);
+    const videosToShow = videos.slice(startIndex, startIndex + VIDEOS_PER_PAGE);
 
     for (const video of videosToShow) {
       const card = await buildVideoCard(video);
@@ -301,7 +336,6 @@
   function renderPagination(totalPages) {
     pagination.innerHTML = '';
     if (totalPages <= 1) return;
-
     for (let i = 1; i <= totalPages; i++) {
       const btn = document.createElement('button');
       btn.textContent = i;
@@ -325,7 +359,7 @@
     if (userVideos.some(v => v.id === id) || defaultVideos.some(v => v.id === id)) {
       return alert('This video is already in the list.');
     }
-    userVideos.push({ id });
+    userVideos.push({ id, category: "uploads" });
     saveUserVideos(userVideos);
     videoURLInput.value = '';
     renderVideos();
@@ -343,6 +377,21 @@
   searchBtn.addEventListener('click', () => {
     searchTerm = searchInput.value.trim();
     renderVideos(1);
+  });
+
+  function openModal(videoId) {
+    videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+    videoModal.style.display = 'flex';
+  }
+  closeModal.addEventListener('click', () => {
+    videoPlayer.src = '';
+    videoModal.style.display = 'none';
+  });
+  window.addEventListener('click', e => {
+    if (e.target === videoModal) {
+      videoPlayer.src = '';
+      videoModal.style.display = 'none';
+    }
   });
 
   renderVideos();
