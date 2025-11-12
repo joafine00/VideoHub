@@ -1,27 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Site Closed</title>
+  <meta charset="UTF-8">
+  <title>VideoHub</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background-color: #0f0f0f;
+      color: #fff;
       margin: 0;
+    }
+    header {
+      background-color: #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 {
+      color: #ff3d00;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    #searchBox {
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      width: 300px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 15px;
+    }
+    button {
+      background-color: #ff3d00;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #ff5722;
+    }
+    #videoGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .videoCard {
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+    .videoCard:hover {
+      transform: scale(1.02);
+    }
+    .videoCard img {
+      width: 100%;
+      display: block;
+    }
+    .videoInfo {
+      padding: 10px;
+    }
+    .videoInfo h3 {
+      font-size: 16px;
+      margin: 5px 0;
+      color: #fff;
+    }
+    .videoInfo button {
+      background-color: #ff3d00;
+      margin-top: 6px;
+      width: 100%;
+    }
+    #favoritesSection {
       background-color: #121212;
-      color: #eee;
-      font-family: Arial, sans-serif;
-      font-size: 1.8rem;
-      text-align: center;
-      padding: 1rem;
-      user-select: none;
+      padding: 20px;
+      border-top: 1px solid #333;
+    }
+    #favoritesSection h2 {
+      color: #ff3d00;
+      margin-bottom: 10px;
+    }
+    .favItem {
+      display: inline-block;
+      background-color: #1e1e1e;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 5px;
+    }
+    .favItem a {
+      color: #fff;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
-  This site has been closed by order of GitHub.
+
+<header>
+  <h1>VideoHub</h1>
+  <div id="searchBox">
+    <input id="searchInput" type="text" placeholder="Search for videos...">
+    <button id="searchBtn">Search</button>
+  </div>
+</header>
+
+<main>
+  <div id="videoGrid"></div>
+</main>
+
+<section id="favoritesSection">
+  <h2>Favorites</h2>
+  <div id="favorites"></div>
+</section>
+
+<script>
+  const API_KEY = "AIzaSyAdqd_Z1QPdfUVScX4Bn23YCTxPCOQBsAo"; // 🔑 Replace with your API key
+  const videoGrid = document.getElementById("videoGrid");
+  const favoritesContainer = document.getElementById("favorites");
+  const searchInput = document.getElementById("searchInput");
+  const searchBtn = document.getElementById("searchBtn");
+
+  // Hidden local storage handling (user doesn’t see it)
+  let savedFavorites = JSON.parse(localStorage.getItem("videohub_favorites")) || [];
+
+  function saveFavorites() {
+    localStorage.setItem("videohub_favorites", JSON.stringify(savedFavorites));
+    renderFavorites();
+  }
+
+  function renderFavorites() {
+    favoritesContainer.innerHTML = savedFavorites.map(v => `
+      <span class="favItem">
+        <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
+      </span>
+    `).join("");
+  }
+
+  async function fetchVideos(query) {
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q=${encodeURIComponent(query)}&key=${API_KEY}`
+    );
+    const data = await res.json();
+    displayVideos(data.items);
+  }
+
+  function displayVideos(videos) {
+    videoGrid.innerHTML = videos.map(v => `
+      <div class="videoCard">
+        <a href="https://www.youtube.com/watch?v=${v.id.videoId}" target="_blank">
+          <img src="${v.snippet.thumbnails.medium.url}" alt="${v.snippet.title}">
+        </a>
+        <div class="videoInfo">
+          <h3>${v.snippet.title}</h3>
+          <button onclick="addFavorite('${v.id.videoId}', '${v.snippet.title.replace(/'/g, "\\'")}')">Add to Favorites</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function addFavorite(id, title) {
+    if (!savedFavorites.some(v => v.id === id)) {
+      savedFavorites.push({ id, title });
+      saveFavorites();
+    }
+  }
+
+  searchBtn.addEventListener("click", () => {
+    const query = searchInput.value.trim();
+    if (query) fetchVideos(query);
+  });
+
+  renderFavorites();
+</script>
+
 </body>
 </html>
